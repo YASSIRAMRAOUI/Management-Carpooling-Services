@@ -5,6 +5,23 @@ import java.sql.*;
 
 public class UserDAO {
 
+    // Method to check if an email is already registered
+    public boolean isEmailRegistered(String email) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1) > 0; // Returns true if count > 0
+                }
+            }
+        }
+        return false;
+    }
+
     // Method to register a new user
     public boolean registerUser(User user) throws SQLException {
         String sql = "INSERT INTO users (name, email, password, phone_number, role) VALUES (?, ?, ?, ?, ?)";
@@ -55,18 +72,4 @@ public class UserDAO {
         return null;
     }
 
-    // Method to check if an email is already registered
-    public boolean isEmailRegistered(String email) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, email);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1) > 0; // Returns true if count > 0
-                }
-            }
-        }
-        return false;
-    }
 }

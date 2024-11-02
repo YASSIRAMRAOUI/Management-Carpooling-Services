@@ -11,24 +11,41 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+
         header, footer {
             background-color: #333;
             color: #fff;
             text-align: center;
             padding: 1em 0;
+            width: 100%;
         }
+
         .container {
+            width: 100%;
             max-width: 800px;
-            margin: 0 auto;
             padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
         }
+
         h1, h2 {
             color: #333;
         }
+
         p {
             color: #666;
         }
+
         .button {
             display: inline-block;
             padding: 10px 20px;
@@ -38,6 +55,7 @@
             text-decoration: none;
             border-radius: 5px;
         }
+
         .button:hover {
             background-color: #555;
         }
@@ -57,8 +75,10 @@
         <p>Join our community of drivers and passengers who share rides, save on travel costs, and contribute to reducing carbon emissions. Whether you’re a driver with extra seats or a passenger looking for a convenient ride, our platform connects you with the right people.</p>
 
         <!-- Navigation Buttons -->
-        <a href="register.jsp" class="button">Register</a>
-        <a href="login.jsp" class="button">Login</a>
+        <div>
+            <a href="login.jsp" class="button">Login</a>
+            <a href="register.jsp" class="button">Register</a>
+        </div>
     </div>
 
     <!-- Footer Section -->

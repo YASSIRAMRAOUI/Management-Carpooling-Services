@@ -2,7 +2,7 @@ package controller;
 
 import database.UserDAO;
 import models.User;
-// import org.mindrot.jbcrypt.BCrypt;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -38,28 +38,22 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        // Check if email is already registered
         try {
+            // Check if the email is already registered
             if (userDAO.isEmailRegistered(email)) {
-                request.setAttribute("errorMessage", "Email is already registered. Please use a different email.");
+                System.out.println("Email already registered: " + email); // Debug message
+                request.setAttribute("errorMessage", "This email is already in use. Please try another email.");
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            request.setAttribute("errorMessage", "Database error: " + e.getMessage());
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-            return;
-        }
 
-        // Hash the password
-        // String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            // Hash the password
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-        // Create a User object
-        User user = new User(name, email, password, phoneNumber, role);
+            // Create a User object
+            User user = new User(name, email, hashedPassword, phoneNumber, role);
 
-        // Register the user in the database
-        try {
+            // Register the user in the database
             if (userDAO.registerUser(user)) {
                 // Registration successful, redirect to login page
                 response.sendRedirect("login.jsp");
