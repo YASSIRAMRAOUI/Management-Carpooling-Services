@@ -22,6 +22,7 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         String email = request.getParameter("email").trim();
         String password = request.getParameter("password");
+        String remember = request.getParameter("remember"); // "on" if checked, null if unchecked
 
         try {
             User user = userDAO.getUserByEmail(email);
@@ -33,11 +34,24 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("name", user.getName());
                 session.setAttribute("role", user.getRole());
 
+                // Handle "Remember Me" functionality
+                if ("on".equals(remember)) {
+                    // Create a cookie to remember the email
+                    Cookie emailCookie = new Cookie("rememberedEmail", email);
+                    emailCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+                    response.addCookie(emailCookie);
+                } else {
+                    // Remove the cookie if "Remember Me" is not checked
+                    Cookie emailCookie = new Cookie("rememberedEmail", "");
+                    emailCookie.setMaxAge(0); // Delete the cookie
+                    response.addCookie(emailCookie);
+                }
+
                 // Redirect based on role
                 if ("Driver".equals(user.getRole())) {
-                    response.sendRedirect("driverHome.jsp");
+                    response.sendRedirect("DriverHomeServlet");
                 } else {
-                    response.sendRedirect("passengerHome.jsp");
+                    response.sendRedirect("passengerHome");
                 }
             } else {
                 // Invalid email or password
