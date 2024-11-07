@@ -94,7 +94,7 @@ public class RideDAO {
     public List<Ride> getRideRequestsByDriver(int driverId) throws SQLException {
         String sql = "SELECT r.*, u.name AS passenger_name FROM rides r " +
                 "JOIN users u ON r.passenger_id = u.user_id " +
-                "WHERE r.driver_id = ? AND r.status = 'Pending'";
+                "WHERE r.driver_id = ?";
         List<Ride> rideRequests = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -103,6 +103,7 @@ public class RideDAO {
                 while (resultSet.next()) {
                     Ride ride = new Ride();
                     ride.setId(resultSet.getInt("id"));
+                    ride.setDriverId(resultSet.getInt("driver_id"));
                     ride.setDate(resultSet.getDate("date"));
                     ride.setDestination(resultSet.getString("destination"));
                     ride.setStatus(resultSet.getString("status"));
