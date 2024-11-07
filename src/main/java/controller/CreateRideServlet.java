@@ -47,7 +47,8 @@ public class CreateRideServlet extends HttpServlet {
             // Save the new ride using RideDAO
             rideDAO.createRide(ride);
 
-            response.sendRedirect("driverHome.jsp");
+            session.setAttribute("rideAdded", "Ride created successfully!");
+            response.sendRedirect("DriverHomeServlet");
         } catch (SQLException e) {
             throw new ServletException("Error creating ride", e);
         }

@@ -210,4 +210,19 @@ public class UserDAO {
             statement.executeUpdate();
         }
     }
+
+    public boolean isEmailDuplicate(String email, int userId) throws SQLException {
+        String query = "SELECT COUNT(*) FROM users WHERE email = ? AND user_id != ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, email);
+            statement.setInt(2, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1) > 0; // If count is greater than 0, email exists for a different user
+                }
+            }
+        }
+        return false;
+    }
 }

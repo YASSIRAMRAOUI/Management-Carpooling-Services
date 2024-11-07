@@ -11,6 +11,30 @@
     <title>Driver Dashboard</title>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<% String rideAddedMessage = (String) request.getAttribute("rideAddedMessage"); %>
+<% if (rideAddedMessage != null) { %>
+    <div id="alert" class="fixed top-5 right-5 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg transition-opacity duration-1000 ease-out" role="alert">
+        <strong class="font-bold">Success!</strong>
+        <span class="block sm:inline"><%= rideAddedMessage %></span>
+        <button type="button" onclick="document.getElementById('alert').style.display='none';" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg class="fill-current h-6 w-6 text-green-700" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M14.348 14.849a1 1 0 001.415 0l.003-.003a1 1 0 000-1.415L11.414 10l4.352-4.343a1 1 0 10-1.415-1.415L10 8.586 5.657 4.243a1 1 0 00-1.414 1.415L8.586 10l-4.343 4.342a1 1 0 101.415 1.415L10 11.414l4.343 4.352a1 1 0 001.005.083z"/>
+            </svg>
+        </button>
+    </div>
+    <script>
+        // Fade out the alert after 5 seconds
+        setTimeout(function() {
+            document.getElementById('alert').classList.add('opacity-0');
+        }, 5000);
+        // Remove alert from DOM after fading out
+        setTimeout(function() {
+            document.getElementById('alert').remove();
+        }, 6000);
+    </script>
+<% } %>
+
+
     <div class="flex h-screen">
 
         <!-- Include the sidebar -->
@@ -49,7 +73,7 @@
                         <i class="fas fa-plus-circle mr-2"></i>
                         Create New Ride
                     </button>
-                    <button onclick="window.location.href='rideRequests.jsp'" class="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition duration-200">
+                    <button onclick="window.location.href='RideRequestServlet'" class="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition duration-200">
                         <i class="fas fa-tasks mr-2"></i>
                         View Ride Requests
                     </button>
@@ -91,12 +115,24 @@
                                                     Cancelled
                                                 </span>
                                             </c:when>
-                                            <c:otherwise>
+                                            <c:when test="${ride.status == 'Accepted'}">
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                    <i class="fas fa-thumbs-up mr-1"></i>
+                                                    Accepted
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${ride.status == 'Rejected'}">
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                                    <i class="fas fa-thumbs-down mr-1"></i>
+                                                    Rejected
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${ride.status == 'Pending'}">
                                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                                                     <i class="fas fa-hourglass-half mr-1"></i>
                                                     Pending
                                                 </span>
-                                            </c:otherwise>
+                                            </c:when>
                                         </c:choose>
                                     </td>
                                     <td class="px-6 py-4">$<c:out value="${ride.fare}"/></td>

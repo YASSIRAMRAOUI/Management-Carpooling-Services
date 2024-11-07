@@ -9,15 +9,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <script>
+        // Automatically hide the alert after a few seconds
+        function hideAlert() {
+            setTimeout(() => {
+                const alertBox = document.getElementById('alert-box');
+                if (alertBox) {
+                    alertBox.classList.add('opacity-0');  // Fade out effect
+                    setTimeout(() => alertBox.remove(), 500); // Remove after fade out
+                }
+            }, 3000); // 3 seconds
+        }
+    </script>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
 <div class="flex">
 
     <jsp:include page="sidebar.jsp" />
 
     <div class="flex-1 px-4 place-content-center">
+        <c:if test="${not empty errorMessage}">
+            <div id="alert-box" class="max-w-lg mx-auto bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-6">
+                <span class="block sm:inline">${errorMessage}</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg class="fill-current h-6 w-6 text-red-500" role="button" onclick="this.parentElement.parentElement.remove()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 5.652a1 1 0 0 0-1.414 0L10 8.586 7.066 5.652a1 1 0 1 0-1.414 1.414l2.934 2.934-2.934 2.934a1 1 0 0 0 1.414 1.414L10 11.414l2.934 2.934a1 1 0 1 0 1.414-1.414l-2.934-2.934 2.934-2.934a1 1 0 0 0 0-1.414z"/>
+                    </svg>
+                </span>
+            </div>
+        </c:if>
+        <c:if test="${not empty message}">
+            <div id="alert-box" class="max-w-lg mx-auto bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mt-6">
+                <span class="block sm:inline">${message}</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg class="fill-current h-6 w-6 text-green-500" role="button" onclick="this.parentElement.parentElement.remove()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 5.652a1 1 0 0 0-1.414 0L10 8.586 7.066 5.652a1 1 0 1 0-1.414 1.414l2.934 2.934-2.934 2.934a1 1 0 0 0 1.414 1.414L10 11.414l2.934 2.934a1 1 0 1 0 1.414-1.414l-2.934-2.934 2.934-2.934a1 1 0 0 0 0-1.414z"/>
+                    </svg>
+                </span>
+            </div>
+        </c:if>
+        
         <div class="max-w-lg mx-auto bg-white rounded-lg shadow-lg p-8 mt-10">
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6">Profile</h1>
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6">Update Profile</h1>
 
             <form action="ProfileServlet" method="post">
                 <div class="mb-4">

@@ -90,30 +90,28 @@ public class RideDAO {
         }
     }
 
-    // Method to get pending ride requests for a driver
-    public List<Ride> getRideRequestsByDriver(int driverId) throws SQLException {
+    // Method to get all ride requests for a driver
+    public List<Ride> getAllRides() throws SQLException {
         String sql = "SELECT r.*, u.name AS passenger_name FROM rides r " +
-                "JOIN users u ON r.passenger_id = u.user_id " +
-                "WHERE r.driver_id = ?";
-        List<Ride> rideRequests = new ArrayList<>();
+                "JOIN users u ON r.passenger_id = u.user_id";
+        List<Ride> allRides = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, driverId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    Ride ride = new Ride();
-                    ride.setId(resultSet.getInt("id"));
-                    ride.setDriverId(resultSet.getInt("driver_id"));
-                    ride.setDate(resultSet.getDate("date"));
-                    ride.setDestination(resultSet.getString("destination"));
-                    ride.setStatus(resultSet.getString("status"));
-                    ride.setPassengerName(resultSet.getString("passenger_name"));
-                    rideRequests.add(ride);
-                }
-            }
+                PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
 
+            while (resultSet.next()) {
+                Ride ride = new Ride();
+                ride.setId(resultSet.getInt("id"));
+                ride.setDriverId(resultSet.getInt("driver_id"));
+                ride.setDate(resultSet.getDate("date"));
+                ride.setDestination(resultSet.getString("destination"));
+                ride.setStatus(resultSet.getString("status"));
+                ride.setFare(resultSet.getDouble("fare"));
+                ride.setPassengerName(resultSet.getString("passenger_name"));
+                allRides.add(ride);
+            }
         }
-        return rideRequests;
+        return allRides;
     }
 
     // Method to update the status of a ride request

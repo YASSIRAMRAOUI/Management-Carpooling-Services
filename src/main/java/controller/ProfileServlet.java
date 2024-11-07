@@ -56,6 +56,13 @@ public class ProfileServlet extends HttpServlet {
         String phoneNumber = request.getParameter("phone_number");
 
         try {
+
+            if (userDAO.isEmailDuplicate(email, userId)) {
+                request.setAttribute("errorMessage", "The email address is already associated with another account.");
+                request.getRequestDispatcher("profile.jsp").forward(request, response);
+                return;
+            }
+
             User user = new User();
             user.setUserId(userId);
             user.setName(name);
@@ -63,7 +70,10 @@ public class ProfileServlet extends HttpServlet {
             user.setPhoneNumber(phoneNumber);
 
             userDAO.updateUser(user);
-            response.sendRedirect("ProfileServlet");
+
+            request.setAttribute("user", user);
+            request.setAttribute("message", "Profile updated successfully.");
+            request.getRequestDispatcher("profile.jsp").forward(request, response);
         } catch (SQLException e) {
             throw new ServletException("Database error while updating user profile", e);
         }

@@ -25,12 +25,12 @@
                     <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                         <thead class="bg-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Destination</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Passenger</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Fare</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Date</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Destination</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Passenger</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Fare</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-700">

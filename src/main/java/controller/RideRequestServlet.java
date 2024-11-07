@@ -21,17 +21,18 @@ public class RideRequestServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer driverId = (Integer) session.getAttribute("user_id");
+        int driverId = (int) session.getAttribute("user_id");
 
-        if (driverId == null) {
+        if (driverId == 0) {
             response.sendRedirect("login.jsp");
             return;
         }
 
         try {
-            List<Ride> rideRequests = rideDAO.getRideRequestsByDriver(driverId);
-            request.setAttribute("rideRequests", rideRequests);
+            List<Ride> allRides = rideDAO.getAllRides();
+            request.setAttribute("rideRequests", allRides);
             request.getRequestDispatcher("rideRequests.jsp").forward(request, response);
+
         } catch (SQLException e) {
             throw new ServletException("Database error while fetching ride requests", e);
         }
