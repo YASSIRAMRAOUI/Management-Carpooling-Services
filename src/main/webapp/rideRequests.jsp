@@ -12,44 +12,57 @@
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
-    <div class="flex">
+    <div class="flex h-screen">
         <jsp:include page="sidebar.jsp" />
 
-        <div class="flex-1 p-2 place-content-center">
+        <div class="flex-1 p-4 place-content-center overflow-y-auto">
             <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 mt-10">
-                <h1 class="text-2xl font-semibold text-gray-800 mb-6">Ride Requests</h1>
-
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-car mr-2"></i>
+                    Ride Requests
+                </h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border rounded-lg shadow-lg">
-                        <thead class="bg-blue-600 text-white">
+                    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                        <thead class="bg-gray-200">
                             <tr>
-                                <th class="px-4 py-3">Date</th>
-                                <th class="px-4 py-3">Destination</th>
-                                <th class="px-4 py-3">Passenger</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Actions</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Destination</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Passenger</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Fare</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             <c:forEach var="request" items="${rideRequests}">
-                                <tr class="text-center border-t">
-                                    <td class="px-4 py-3"><c:out value="${request.date}"/></td>
-                                    <td class="px-4 py-3"><c:out value="${request.destination}"/></td>
-                                    <td class="px-4 py-3"><c:out value="${request.passengerName}"/></td>
-                                    <td class="px-4 py-3">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4"><c:out value="${request.date}"/></td>
+                                    <td class="px-6 py-4"><c:out value="${request.destination}"/></td>
+                                    <td class="px-6 py-4"><c:out value="${request.passengerName}"/></td>
+                                    <td class="px-6 py-4">
                                         <c:choose>
                                             <c:when test="${request.status == 'Pending'}">
-                                                <span class="text-yellow-600">Pending</span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                    <i class="fas fa-hourglass-half mr-1"></i>
+                                                    Pending
+                                                </span>
                                             </c:when>
                                             <c:when test="${request.status == 'Accepted'}">
-                                                <span class="text-green-600">Accepted</span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check-circle mr-1"></i>
+                                                    Accepted
+                                                </span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="text-red-600">Rejected</span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                                    <i class="fas fa-times-circle mr-1"></i>
+                                                    Rejected
+                                                </span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td class="px-4 py-3 space-x-2">
+                                    <td class="px-6 py-4">$<c:out value="${request.fare}"/></td>
+                                    <td class="px-6 py-4 space-x-2">
                                         <c:if test="${request.status == 'Pending'}">
                                             <form action="RideRequestServlet" method="post" style="display:inline;">
                                                 <input type="hidden" name="requestId" value="${request.id}"/>
@@ -70,6 +83,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </body>
 </html>

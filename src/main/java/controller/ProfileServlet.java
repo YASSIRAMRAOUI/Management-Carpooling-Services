@@ -27,7 +27,6 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
-        // Fetch user profile details
         try {
             User user = userDAO.getUserById(userId);
             if (user != null) {

@@ -66,13 +66,13 @@
                     <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                         <thead class="bg-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Destination</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Fare</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Date</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Destination</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Fare</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
+                        <tbody class="text-gray-700 text-center">
                             <c:forEach var="ride" items="${recentRides}">
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="px-6 py-4"><c:out value="${ride.date}"/></td>

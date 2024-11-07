@@ -1,4 +1,3 @@
-// File: controller/CreateRideServlet.java
 package controller;
 
 import database.RideDAO;
@@ -48,7 +47,6 @@ public class CreateRideServlet extends HttpServlet {
             // Save the new ride using RideDAO
             rideDAO.createRide(ride);
 
-            // Redirect to the dashboard after successful creation
             response.sendRedirect("driverHome.jsp");
         } catch (SQLException e) {
             throw new ServletException("Error creating ride", e);

@@ -1,4 +1,3 @@
-// File: controller/RideRequestServlet.java
 package controller;
 
 import database.RideDAO;
@@ -30,7 +29,6 @@ public class RideRequestServlet extends HttpServlet {
         }
 
         try {
-            // Get pending ride requests for the driver
             List<Ride> rideRequests = rideDAO.getRideRequestsByDriver(driverId);
             request.setAttribute("rideRequests", rideRequests);
             request.getRequestDispatcher("rideRequests.jsp").forward(request, response);
