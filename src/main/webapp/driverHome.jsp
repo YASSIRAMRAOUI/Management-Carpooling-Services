@@ -61,7 +61,7 @@
                 </div>
                 <div class="bg-white shadow-md rounded-lg p-6 text-center">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Earnings</h3>
-                    <p class="text-4xl font-bold text-green-600">$<c:out value="${earnings}"/></p>
+                    <p class="text-4xl font-bold text-green-600"><c:out value="${earnings}"/> Dh</p>
                 </div>
             </section>
 

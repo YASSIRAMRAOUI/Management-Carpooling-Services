@@ -5,6 +5,7 @@ import models.Ride;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 public class RideDAO {
 
@@ -43,7 +44,7 @@ public class RideDAO {
         String sql = "SELECT r.*, u.name AS passenger_name, u.phone_number AS passenger_phone FROM rides r " +
                 "JOIN ride_requests rr ON r.id = rr.ride_id " +
                 "JOIN users u ON rr.passenger_id = u.user_id " +
-                "WHERE r.driver_id = ? ORDER BY r.date DESC LIMIT 5";
+                "WHERE r.driver_id = ? ORDER BY r.date DESC LIMIT 10";
         List<Ride> rides = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -86,12 +87,9 @@ public class RideDAO {
 
     // Method to get all ride requests for a driver
     public List<Ride> getAllRides() throws SQLException {
-        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.fare, r.status, u.name AS passenger_name "
-                +
-                "FROM rides r " +
-                "JOIN ride_requests rr ON r.id = rr.ride_id " +
-                "JOIN users u ON rr.passenger_id = u.user_id";
+        String sql = "SELECT id, driver_id, date, depart, destination, number_of_places, fare, status FROM rides";
         List<Ride> allRides = new ArrayList<>();
+
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql);
                 ResultSet resultSet = statement.executeQuery()) {
@@ -101,15 +99,15 @@ public class RideDAO {
                 ride.setId(resultSet.getInt("id"));
                 ride.setDriverId(resultSet.getInt("driver_id"));
                 ride.setDate(resultSet.getDate("date"));
-                ride.setDepart(resultSet.getString("depart")); // Ensure this line is present
+                ride.setDepart(resultSet.getString("depart"));
                 ride.setDestination(resultSet.getString("destination"));
                 ride.setNumberOfPlaces(resultSet.getInt("number_of_places"));
                 ride.setFare(resultSet.getDouble("fare"));
                 ride.setStatus(resultSet.getString("status"));
-                ride.setPassengerName(resultSet.getString("passenger_name"));
                 allRides.add(ride);
             }
         }
+
         return allRides;
     }
 
@@ -185,4 +183,21 @@ public class RideDAO {
         }
     }
 
+    // Update expired rides
+    public void updateExpiredRides() throws SQLException {
+        String sql = "UPDATE rides r " +
+                "SET r.status = 'Completed' " +
+                "WHERE r.status = 'In Progress' " +
+                "AND (r.date < ? OR " +
+                "(SELECT COUNT(*) FROM ride_requests rr WHERE rr.ride_id = r.id AND rr.status = 'Accepted') >= r.number_of_places)";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setDate(1, Date.valueOf(LocalDate.now()));
+            int affectedRows = statement.executeUpdate();
+
+            System.out.println("Updated " + affectedRows + " expired rides to 'Completed' status.");
+        }
+    }
 }

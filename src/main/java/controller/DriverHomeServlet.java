@@ -28,6 +28,8 @@ public class DriverHomeServlet extends HttpServlet {
         }
 
         try {
+            rideDAO.updateExpiredRides();
+
             int totalRides = rideDAO.getTotalRidesByDriver(driverId);
             int pendingRequests = rideDAO.getPendingRequestsByDriver(driverId);
             double earnings = rideDAO.getEarningsByDriver(driverId);
