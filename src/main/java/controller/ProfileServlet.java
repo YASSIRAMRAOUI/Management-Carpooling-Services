@@ -31,6 +31,13 @@ public class ProfileServlet extends HttpServlet {
             User user = userDAO.getUserById(userId);
             if (user != null) {
                 request.setAttribute("user", user);
+
+                String message = (String) session.getAttribute("message");
+                if (message != null) {
+                    request.setAttribute("message", message);
+                    session.removeAttribute("message");
+                }
+
                 request.getRequestDispatcher("profile.jsp").forward(request, response);
             } else {
                 response.sendRedirect("login.jsp");
@@ -71,9 +78,12 @@ public class ProfileServlet extends HttpServlet {
 
             userDAO.updateUser(user);
 
-            request.setAttribute("user", user);
-            request.setAttribute("message", "Profile updated successfully.");
-            request.getRequestDispatcher("profile.jsp").forward(request, response);
+            session.setAttribute("name", name);
+            session.setAttribute("email", email);
+            session.setAttribute("phone_number", phoneNumber);
+
+            session.setAttribute("message", "Profile updated successfully.");
+            response.sendRedirect("ProfileServlet");
         } catch (SQLException e) {
             throw new ServletException("Database error while updating user profile", e);
         }

@@ -23,17 +23,18 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="depart" class="block text-gray-700 font-semibold">Depart</label>
+                        <input type="text" id="depart" name="depart" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
+                    </div>
+
+                    <div class="mb-4">
                         <label for="destination" class="block text-gray-700 font-semibold">Destination</label>
                         <input type="text" id="destination" name="destination" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
                     </div>
 
                     <div class="mb-4">
-                        <label for="status" class="block text-gray-700 font-semibold">Status</label>
-                        <select id="status" name="status" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <label for="numberOfPlaces" class="block text-gray-700 font-semibold">Number of Places</label>
+                        <input type="number" id="numberOfPlaces" name="numberOfPlaces" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>
                     </div>
 
                     <div class="mb-4">

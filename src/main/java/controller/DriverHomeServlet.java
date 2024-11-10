@@ -20,9 +20,13 @@ public class DriverHomeServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        int driverId = (int) session.getAttribute("user_id");
+        Integer driverId = (Integer) session.getAttribute("user_id");
 
-        // Fetch summary statistics and recent rides for the driver
+        if (driverId == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
         try {
             int totalRides = rideDAO.getTotalRidesByDriver(driverId);
             int pendingRequests = rideDAO.getPendingRequestsByDriver(driverId);

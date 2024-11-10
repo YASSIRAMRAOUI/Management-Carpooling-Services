@@ -30,9 +30,11 @@ public class CreateRideServlet extends HttpServlet {
 
         // Retrieve form parameters
         String dateStr = request.getParameter("date");
+        String depart = request.getParameter("depart");
         String destination = request.getParameter("destination");
-        String status = request.getParameter("status");
-        double fare = Double.parseDouble(request.getParameter("fare"));
+        Double fare = Double.parseDouble(request.getParameter("fare"));
+        int numberOfPlaces = Integer.parseInt(request.getParameter("numberOfPlaces"));
+        String status = "In Progress";
 
         try {
             // Parse date and create a new Ride object
@@ -40,9 +42,11 @@ public class CreateRideServlet extends HttpServlet {
             Ride ride = new Ride();
             ride.setDriverId(driverId);
             ride.setDate(date);
+            ride.setDepart(depart);
             ride.setDestination(destination);
-            ride.setStatus(status);
             ride.setFare(fare);
+            ride.setNumberOfPlaces(numberOfPlaces);
+            ride.setStatus(status);
 
             // Save the new ride using RideDAO
             rideDAO.createRide(ride);

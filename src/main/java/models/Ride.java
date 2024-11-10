@@ -6,23 +6,30 @@ public class Ride {
     private int id;
     private int driverId;
     private Date date;
+    private String depart;
     private String destination;
     private String status;
     private double fare;
     private String passengerName;
+    private int numberOfPlaces;
+    private String passengerPhone;
 
     // Constructors
     public Ride() {
     }
 
-    public Ride(int id, int driverId, Date date, String destination, String status, double fare, String passengerName) {
+    public Ride(int id, int driverId, Date date, String depart, String destination, String status, double fare,
+            String passengerName, int numberOfPlaces, String passengerPhone) {
         this.id = id;
         this.driverId = driverId;
         this.date = date;
+        this.depart = depart;
         this.destination = destination;
         this.status = status;
         this.fare = fare;
         this.passengerName = passengerName;
+        this.numberOfPlaces = numberOfPlaces;
+        this.passengerPhone = passengerPhone;
     }
 
     // Getters and Setters
@@ -48,6 +55,14 @@ public class Ride {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public String getDepart() {
+        return depart;
+    }
+
+    public void setDepart(String depart) {
+        this.depart = depart;
     }
 
     public String getDestination() {
@@ -80,5 +95,21 @@ public class Ride {
 
     public void setPassengerName(String string) {
         this.passengerName = string;
+    }
+
+    public int getNumberOfPlaces() {
+        return numberOfPlaces;
+    }
+
+    public void setNumberOfPlaces(int numberOfPlaces) {
+        this.numberOfPlaces = numberOfPlaces;
+    }
+
+    public String getpassengerPhone() {
+        return passengerPhone;
+    }
+
+    public void setPassengerPhone(String passengerPhone) {
+        this.passengerPhone = passengerPhone;
     }
 }

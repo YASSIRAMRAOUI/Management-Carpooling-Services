@@ -91,8 +91,10 @@
                         <thead class="bg-gray-200">
                             <tr>
                                 <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Date</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Depart</th>
                                 <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Destination</th>
-                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Passenger Name</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Passenger Phone</th>
                                 <th class="px-6 py-3 text-center text-sm font-medium text-gray-700">Fare</th>
                             </tr>
                         </thead>
@@ -100,41 +102,10 @@
                             <c:forEach var="ride" items="${recentRides}">
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="px-6 py-4"><c:out value="${ride.date}"/></td>
+                                    <td class="px-6 py-4"><c:out value="${ride.depart}"/></td>
                                     <td class="px-6 py-4"><c:out value="${ride.destination}"/></td>
-                                    <td class="px-6 py-4">
-                                        <c:choose>
-                                            <c:when test="${ride.status == 'Completed'}">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                    <i class="fas fa-check-circle mr-1"></i>
-                                                    Completed
-                                                </span>
-                                            </c:when>
-                                            <c:when test="${ride.status == 'Cancelled'}">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                                                    <i class="fas fa-times-circle mr-1"></i>
-                                                    Cancelled
-                                                </span>
-                                            </c:when>
-                                            <c:when test="${ride.status == 'Accepted'}">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                                    <i class="fas fa-thumbs-up mr-1"></i>
-                                                    Accepted
-                                                </span>
-                                            </c:when>
-                                            <c:when test="${ride.status == 'Rejected'}">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                                    <i class="fas fa-thumbs-down mr-1"></i>
-                                                    Rejected
-                                                </span>
-                                            </c:when>
-                                            <c:when test="${ride.status == 'Pending'}">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                                    <i class="fas fa-hourglass-half mr-1"></i>
-                                                    Pending
-                                                </span>
-                                            </c:when>
-                                        </c:choose>
-                                    </td>
+                                    <td class="px-6 py-4"><c:out value="${ride.passengerName}"/></td>
+                                    <td class="px-6 py-4"><c:out value="${ride.passengerPhone}"/></td>
                                     <td class="px-6 py-4">$<c:out value="${ride.fare}"/></td>
                                 </tr>
                             </c:forEach>
