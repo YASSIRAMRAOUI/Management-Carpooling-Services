@@ -98,8 +98,47 @@ Contributions are welcome! Follow these steps to contribute:
    ```bash
    git checkout -b feature/YourFeature
 
-### Commit your changes:
-```bash
-git commit -m 'Add feature'
+### SQL queries to create the users, rides, and ride_requests tables
 
-git push origin feature/YourFeature
+1.**users Table**
+```bash
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(15),
+    role ENUM('driver', 'passenger', 'admin') DEFAULT 'passenger',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+2.**rides Table**
+```bash
+CREATE TABLE rides (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    driver_id INT NOT NULL,
+    date DATE NOT NULL,
+    depart VARCHAR(100) NOT NULL,
+    destination VARCHAR(100) NOT NULL,
+    fare DECIMAL(10, 2) NOT NULL,
+    number_of_places INT NOT NULL,
+    status ENUM('In Progress', 'Completed', 'Cancelled') DEFAULT 'In Progress',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (driver_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+```
+
+2.**ride_requests Table**
+```bash
+CREATE TABLE ride_requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    ride_id INT NOT NULL,
+    passenger_id INT NOT NULL,
+    status ENUM('Pending', 'Accepted', 'Rejected') DEFAULT 'Pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE CASCADE,
+    FOREIGN KEY (passenger_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+```
