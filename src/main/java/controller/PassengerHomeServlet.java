@@ -2,7 +2,6 @@ package controller;
 
 import database.RideDAO;
 import models.Ride;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
@@ -12,31 +11,27 @@ import java.util.List;
 
 @WebServlet("/PassengerHomeServlet")
 public class PassengerHomeServlet extends HttpServlet {
+    private RideDAO rideDAO;
 
-    private final RideDAO rideDAO = new RideDAO();
+    @Override
+    public void init() {
+        rideDAO = new RideDAO();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer passengerId = (Integer) session.getAttribute("user_id");
+        Integer PassengerId = (Integer) session.getAttribute("user_id");
 
-        if (passengerId == null) {
+        if (PassengerId == null) {
             response.sendRedirect("login.jsp");
             return;
         }
 
+        Integer passengerId = (Integer) session.getAttribute("user_id");
         try {
             List<Ride> availableRides = rideDAO.getAvailableRidesForPassenger(passengerId);
-
-            // Check for messages (if a ride was accepted/declined)
-            String rideResponseMessage = (String) session.getAttribute("rideResponseMessage");
-            if (rideResponseMessage != null) {
-                request.setAttribute("rideResponseMessage", rideResponseMessage);
-                session.removeAttribute("rideResponseMessage");
-            }
-
-            // Set attributes for JSP
             request.setAttribute("availableRides", availableRides);
 
             // Forward to passengerHome.jsp
@@ -47,11 +42,17 @@ public class PassengerHomeServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user_id") == null || !"Passenger".equals(session.getAttribute("role"))) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
         String action = request.getParameter("action");
         int rideId = Integer.parseInt(request.getParameter("rideId"));
-        HttpSession session = request.getSession();
-        int passengerId = (Integer) session.getAttribute("passengerId");
+        Integer passengerId = (Integer) session.getAttribute("user_id");
 
         try {
             if ("accept".equals(action)) {
@@ -59,10 +60,9 @@ public class PassengerHomeServlet extends HttpServlet {
             } else if ("decline".equals(action)) {
                 rideDAO.declineRide(passengerId, rideId);
             }
-            response.sendRedirect("PassengerHomeServlet");
+            response.sendRedirect("PassengerHomeServlet"); // Redirect to refresh available rides
         } catch (SQLException e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new ServletException("Database access error", e);
         }
     }
 }
