@@ -185,4 +185,104 @@ public class RideDAO {
         }
     }
 
+    public List<Ride> getAvailableRidesForPassenger(int passengerId) throws SQLException {
+        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name " +
+                "FROM rides r " +
+                "JOIN ride_requests rr ON r.id = rr.ride_id " +
+                "JOIN users u ON r.driver_id = u.user_id " +
+                "WHERE rr.passenger_id = ? AND r.status IN ('In Progress', 'Pending') AND r.number_of_places > 0";
+        List<Ride> availableRides = new ArrayList<>();
+
+        // Establish a connection to the database and execute the query
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, passengerId);  // Set the passengerId in the query
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                // Process the result set and populate the Ride objects
+                while (resultSet.next()) {
+                    Ride ride = new Ride();
+                    ride.setId(resultSet.getInt("id"));
+                    ride.setDriverId(resultSet.getInt("driver_id"));
+                    ride.setDate(resultSet.getDate("date"));
+                    ride.setDepart(resultSet.getString("depart"));
+                    ride.setDestination(resultSet.getString("destination"));
+                    ride.setFare(resultSet.getDouble("fare"));
+                    ride.setNumberOfPlaces(resultSet.getInt("number_of_places"));
+                    ride.setStatus(resultSet.getString("status"));
+                    ride.setPassengerName(resultSet.getString("driver_name"));
+                    availableRides.add(ride);  // Add the ride to the list
+                }
+            }
+        }
+        return availableRides;  // Return the list of available rides
+    }
+    public void acceptRide(int passengerId, int rideId) throws SQLException {
+        // First, we need to ensure that the passenger has requested this ride
+        String checkRequestSql = "SELECT * FROM ride_requests WHERE passenger_id = ? AND ride_id = ? AND status = 'Pending'";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(checkRequestSql)) {
+
+            statement.setInt(1, passengerId);  // Set the passengerId
+            statement.setInt(2, rideId);  // Set the rideId
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    // The ride request exists and is pending, so we can proceed with accepting the ride
+
+                    // Update the ride status to 'Accepted'
+                    String updateRideStatusSql = "UPDATE rides SET status = 'Accepted', number_of_places = number_of_places - 1 WHERE id = ? AND number_of_places > 0";
+
+                    try (PreparedStatement updateStatement = connection.prepareStatement(updateRideStatusSql)) {
+                        updateStatement.setInt(1, rideId);  // Set the rideId
+                        int rowsUpdated = updateStatement.executeUpdate();
+
+                        if (rowsUpdated == 0) {
+                            throw new SQLException("No available seats or ride status could not be updated.");
+                        }
+
+                        // After accepting the ride, we also update the ride request status
+                        String updateRequestStatusSql = "UPDATE ride_requests SET status = 'Accepted' WHERE ride_id = ? AND passenger_id = ?";
+                        try (PreparedStatement updateRequestStatement = connection.prepareStatement(updateRequestStatusSql)) {
+                            updateRequestStatement.setInt(1, rideId);  // Set the rideId
+                            updateRequestStatement.setInt(2, passengerId);  // Set the passengerId
+                            updateRequestStatement.executeUpdate();  // Update the request status to 'Accepted'
+                        }
+                    }
+                } else {
+                    throw new SQLException("This passenger has not requested this ride or the request is not pending.");
+                }
+            }
+        }
+    }
+
+    // Method to decline a ride
+    public void declineRide(int passengerId, int rideId) throws SQLException {
+        // First, we need to ensure that the passenger has requested this ride
+        String checkRequestSql = "SELECT * FROM ride_requests WHERE passenger_id = ? AND ride_id = ? AND status = 'Pending'";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(checkRequestSql)) {
+
+            statement.setInt(1, passengerId);  // Set the passengerId
+            statement.setInt(2, rideId);  // Set the rideId
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    // The ride request exists and is pending, so we can proceed with declining the ride
+
+                    // Update the ride request status to 'Declined'
+                    String updateRequestStatusSql = "UPDATE ride_requests SET status = 'Declined' WHERE ride_id = ? AND passenger_id = ?";
+
+                    try (PreparedStatement updateRequestStatement = connection.prepareStatement(updateRequestStatusSql)) {
+                        updateRequestStatement.setInt(1, rideId);  // Set the rideId
+                        updateRequestStatement.setInt(2, passengerId);  // Set the passengerId
+                        updateRequestStatement.executeUpdate();  // Update the request status to 'Declined'
+                    }
+                } else {
+                    throw new SQLException("This passenger has not requested this ride or the request is not pending.");
+                }
+            }
+        }
+    }
 }

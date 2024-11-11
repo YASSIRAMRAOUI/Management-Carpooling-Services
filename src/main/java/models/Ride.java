@@ -13,13 +13,14 @@ public class Ride {
     private String passengerName;
     private int numberOfPlaces;
     private String passengerPhone;
+    private String driverName;  // Added field for driver's name
 
     // Constructors
     public Ride() {
     }
 
     public Ride(int id, int driverId, Date date, String depart, String destination, String status, double fare,
-            String passengerName, int numberOfPlaces, String passengerPhone) {
+                String passengerName, int numberOfPlaces, String passengerPhone, String driverName) {
         this.id = id;
         this.driverId = driverId;
         this.date = date;
@@ -30,6 +31,7 @@ public class Ride {
         this.passengerName = passengerName;
         this.numberOfPlaces = numberOfPlaces;
         this.passengerPhone = passengerPhone;
+        this.driverName = driverName;  // Set the driver name
     }
 
     // Getters and Setters
@@ -93,8 +95,8 @@ public class Ride {
         return passengerName;
     }
 
-    public void setPassengerName(String string) {
-        this.passengerName = string;
+    public void setPassengerName(String passengerName) {
+        this.passengerName = passengerName;
     }
 
     public int getNumberOfPlaces() {
@@ -105,11 +107,20 @@ public class Ride {
         this.numberOfPlaces = numberOfPlaces;
     }
 
-    public String getpassengerPhone() {
+    public String getPassengerPhone() {
         return passengerPhone;
     }
 
     public void setPassengerPhone(String passengerPhone) {
         this.passengerPhone = passengerPhone;
+    }
+
+    // Getter and Setter for driverName
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
     }
 }
