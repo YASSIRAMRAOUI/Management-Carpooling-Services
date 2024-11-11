@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="javax.servlet.http.HttpSession" %>
+<%@ page isELIgnored="false" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +24,7 @@
         <thead class="bg-gray-800 text-white">
         <tr>
             <th class="py-3 px-5 text-left">Driver Name</th>
-            <th class="py-3 px-5 text-left">Depart</th>
+            <th class="py-3 px-5 text-left">Departure</th>
             <th class="py-3 px-5 text-left">Destination</th>
             <th class="py-3 px-5 text-left">Fare</th>
             <th class="py-3 px-5 text-left">Action</th>

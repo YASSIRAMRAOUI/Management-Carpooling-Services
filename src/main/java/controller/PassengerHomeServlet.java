@@ -29,10 +29,11 @@ public class PassengerHomeServlet extends HttpServlet {
             return;
         }
 
-        Integer passengerId = (Integer) session.getAttribute("user_id");
         try {
-            List<Ride> availableRides = rideDAO.getAvailableRidesForPassenger(passengerId);
-            request.setAttribute("availableRides", availableRides);
+                List<Ride> availableRides = rideDAO.getAvailableRidesForPassenger(PassengerId); // Fetch rides with all fields populated
+                for (Ride ride : availableRides) {
+                    System.out.println("Ride details: " + ride.getDriverName() + ", " + ride.getDepart() + " to " + ride.getDestination());
+                }
 
             // Forward to passengerHome.jsp
             request.getRequestDispatcher("passengerHome.jsp").forward(request, response);
