@@ -51,7 +51,7 @@ public class LoginServlet extends HttpServlet {
                 if ("Driver".equals(user.getRole())) {
                     response.sendRedirect("DriverHomeServlet");
                 } else {
-                    response.sendRedirect("passengerHome");
+                    response.sendRedirect("PassengerHomeServlet");
                 }
             } else {
                 // Invalid email or password

@@ -13,6 +13,8 @@ public class Ride {
     private String passengerName;
     private int numberOfPlaces;
     private String passengerPhone;
+    private String driverName;
+
 
     // Constructors
     public Ride() {
@@ -111,5 +113,12 @@ public class Ride {
 
     public void setPassengerPhone(String passengerPhone) {
         this.passengerPhone = passengerPhone;
+    }
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
     }
 }

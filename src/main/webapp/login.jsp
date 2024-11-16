@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
+<body class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-600 to-green-600">
 
 <%
     // Check if there is a "rememberedEmail" cookie
@@ -81,7 +81,7 @@
             <a href="forgot-password.jsp" class="text-sm text-blue-500 hover:underline">Forgot your password?</a>
         </div>
 
-        <button type="submit" class="w-full px-4 py-2 font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="w-full px-4 py-2 font-semibold text-white bg-gradient-to-r from-blue-600 to-green-600 rounded-lg hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             Log In
         </button>
     </form>
