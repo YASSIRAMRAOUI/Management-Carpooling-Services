@@ -61,14 +61,37 @@ public class PassengerHomeServlet extends HttpServlet {
         }
 
         String action = request.getParameter("action");
-        int rideId = Integer.parseInt(request.getParameter("rideId"));
+        String rideIdParam = request.getParameter("rideId");
         Integer passengerId = (Integer) session.getAttribute("user_id");
 
-        if ("accept".equals(action)) {
-            rideDAO.acceptRide(passengerId, rideId);
-        } else if ("decline".equals(action)) {
-            rideDAO.declineRide(passengerId, rideId);
+        if (action == null || rideIdParam == null) {
+            response.sendRedirect("PassengerHomeServlet?error=invalid_action");
+            return;
         }
-        response.sendRedirect("PassengerHomeServlet"); // Redirect to refresh available rides
+
+        try {
+            int rideId = Integer.parseInt(rideIdParam);
+
+            if ("accept".equals(action)) {
+                rideDAO.acceptRide(passengerId, rideId);
+            } else if ("decline".equals(action)) {
+                rideDAO.declineRide(passengerId, rideId);
+            } else {
+                response.sendRedirect("PassengerHomeServlet?error=invalid_action");
+                return;
+            }
+
+            // Redirect to refresh available rides
+            response.sendRedirect("PassengerHomeServlet");
+        } catch (NumberFormatException e) {
+            // Log the error (optional)
+            System.err.println("Invalid rideId: " + rideIdParam);
+            response.sendRedirect("PassengerHomeServlet?error=invalid_ride_id");
+        } catch (SQLException e) {
+            // Log the error
+            e.printStackTrace();
+            response.sendRedirect("PassengerHomeServlet?error=database_error");
+        }
     }
+
 }
