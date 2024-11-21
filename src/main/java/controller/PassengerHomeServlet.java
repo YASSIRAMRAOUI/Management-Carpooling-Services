@@ -8,9 +8,11 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Logger;
 
 @WebServlet("/PassengerHomeServlet")
 public class PassengerHomeServlet extends HttpServlet {
+    private static final Logger logger = Logger.getLogger(PassengerHomeServlet.class.getName());
     private RideDAO rideDAO;
 
     @Override
@@ -44,7 +46,7 @@ public class PassengerHomeServlet extends HttpServlet {
             request.getRequestDispatcher("passengerHome.jsp").forward(request, response);
         } catch (SQLException e) {
             // Log the exception for debugging
-            e.printStackTrace();
+            logger.severe("Database access error: " + e.getMessage());
 
             // Handle database access error
             throw new ServletException("Database access error", e);
@@ -54,8 +56,10 @@ public class PassengerHomeServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user_id") == null || !"Passenger".equals(session.getAttribute("role"))) {
+        HttpSession session = request.getSession();
+        Integer PassengerId = (Integer) session.getAttribute("user_id");
+
+        if (PassengerId == null) {
             response.sendRedirect("login.jsp");
             return;
         }
@@ -85,13 +89,13 @@ public class PassengerHomeServlet extends HttpServlet {
             response.sendRedirect("PassengerHomeServlet");
         } catch (NumberFormatException e) {
             // Log the error (optional)
-            System.err.println("Invalid rideId: " + rideIdParam);
+            logger.severe("Invalid rideId: " + rideIdParam);
             response.sendRedirect("PassengerHomeServlet?error=invalid_ride_id");
         } catch (SQLException e) {
             // Log the error
-            e.printStackTrace();
+            logger.severe("Database error: " + e.getMessage());
             response.sendRedirect("PassengerHomeServlet?error=database_error");
+            throw new ServletException("Database access error", e);
         }
     }
-
 }
