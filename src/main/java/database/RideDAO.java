@@ -201,16 +201,17 @@ public class RideDAO {
         }
     }
 
-    public List<Ride> getAvailableRides() throws SQLException {
+    public List<Ride> getAvailableRides(int passengerId) throws SQLException {
         String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name " +
                 "FROM rides r " +
                 "JOIN users u ON r.driver_id = u.user_id " +
-                "WHERE r.status = 'In Progress' AND r.number_of_places > 0 ";
+                "LEFT JOIN ride_requests rr ON r.id = rr.ride_id AND rr.passenger_id = ? AND rr.status = 'Accepted' " +
+                "WHERE r.status = 'In Progress' AND r.number_of_places > 0 AND rr.ride_id IS NULL";
 
         List<Ride> availableRides = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-
+            statement.setInt(1, passengerId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {

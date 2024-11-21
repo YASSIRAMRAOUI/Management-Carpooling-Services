@@ -24,15 +24,15 @@ public class PassengerHomeServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer PassengerId = (Integer) session.getAttribute("user_id");
+        Integer passengerId = (Integer) session.getAttribute("user_id");
 
-        if (PassengerId == null) {
+        if (passengerId == null) {
             response.sendRedirect("login.jsp");
             return;
         }
 
         try {
-            List<Ride> availableRides = rideDAO.getAvailableRides(); // Fetch rides with all fields populated
+            List<Ride> availableRides = rideDAO.getAvailableRides(passengerId); // Fetch rides with all fields populated
 
             // Print ride details to the console for debugging
             for (Ride ride : availableRides) {
