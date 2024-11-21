@@ -232,37 +232,39 @@ public class RideDAO {
         return availableRides;
     }
 
-public void acceptRide(Integer passengerId, int rideId) throws SQLException {
-    String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - 1 WHERE id = ?";
-    String checkFullSQL = "UPDATE rides SET status = 'Completed' WHERE id = ? AND number_of_places <= 0";
-    String insertRequestSQL = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Accepted')";
+    public void acceptRide(Integer passengerId, int rideId, int places) throws SQLException {
+        String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - ? WHERE id = ?";
+        String checkFullSQL = "UPDATE rides SET status = 'Completed' WHERE id = ? AND number_of_places <= 0";
+        String insertRequestSQL = "INSERT INTO ride_requests (ride_id, passenger_id, status, places) VALUES (?, ?, 'Accepted', ?)";
 
-    try (Connection connection = DatabaseConnection.getConnection()) {
-        try (PreparedStatement decreaseSeatsStmt = connection.prepareStatement(decreaseSeatsSQL);
-             PreparedStatement checkFullStmt = connection.prepareStatement(checkFullSQL);
-             PreparedStatement insertRequestStmt = connection.prepareStatement(insertRequestSQL)) {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            try (PreparedStatement decreaseSeatsStmt = connection.prepareStatement(decreaseSeatsSQL);
+                 PreparedStatement checkFullStmt = connection.prepareStatement(checkFullSQL);
+                 PreparedStatement insertRequestStmt = connection.prepareStatement(insertRequestSQL)) {
 
-            connection.setAutoCommit(false); // Start transaction
+                connection.setAutoCommit(false); // Start transaction
 
-            insertRequestStmt.setInt(1, rideId);
-            insertRequestStmt.setInt(2, passengerId);
-            insertRequestStmt.executeUpdate();
+                insertRequestStmt.setInt(1, rideId);
+                insertRequestStmt.setInt(2, passengerId);
+                insertRequestStmt.setInt(3, places);
+                insertRequestStmt.executeUpdate();
 
-            decreaseSeatsStmt.setInt(1, rideId);
-            decreaseSeatsStmt.executeUpdate();
+                decreaseSeatsStmt.setInt(1, places);
+                decreaseSeatsStmt.setInt(2, rideId);
+                decreaseSeatsStmt.executeUpdate();
 
-            checkFullStmt.setInt(1, rideId);
-            checkFullStmt.executeUpdate();
+                checkFullStmt.setInt(1, rideId);
+                checkFullStmt.executeUpdate();
 
-            connection.commit(); // Commit transaction
-        } catch (SQLException e) {
-            connection.rollback(); // Rollback on failure
-            throw e;
-        } finally {
-            connection.setAutoCommit(true); // Ensure auto-commit is re-enabled
+                connection.commit(); // Commit transaction
+            } catch (SQLException e) {
+                connection.rollback(); // Rollback on failure
+                throw e;
+            } finally {
+                connection.setAutoCommit(true); // Ensure auto-commit is re-enabled
+            }
         }
     }
-}
     public void declineRide(Integer passengerId, int rideId) throws SQLException {
         String sql = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Declined')";
         try (Connection connection = DatabaseConnection.getConnection();

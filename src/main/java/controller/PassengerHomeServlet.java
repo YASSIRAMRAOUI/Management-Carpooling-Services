@@ -66,18 +66,20 @@ public class PassengerHomeServlet extends HttpServlet {
 
         String action = request.getParameter("action");
         String rideIdParam = request.getParameter("rideId");
+        String placesParam = request.getParameter("places");
         Integer passengerId = (Integer) session.getAttribute("user_id");
 
-        if (action == null || rideIdParam == null) {
+        if (action == null || rideIdParam == null || placesParam == null) {
             response.sendRedirect("PassengerHomeServlet?error=invalid_action");
             return;
         }
 
         try {
             int rideId = Integer.parseInt(rideIdParam);
+            int places = Integer.parseInt(placesParam);
 
             if ("accept".equals(action)) {
-                rideDAO.acceptRide(passengerId, rideId);
+                rideDAO.acceptRide(passengerId, rideId, places);
             } else if ("decline".equals(action)) {
                 rideDAO.declineRide(passengerId, rideId);
             } else {
@@ -89,8 +91,8 @@ public class PassengerHomeServlet extends HttpServlet {
             response.sendRedirect("PassengerHomeServlet");
         } catch (NumberFormatException e) {
             // Log the error (optional)
-            logger.severe("Invalid rideId: " + rideIdParam);
-            response.sendRedirect("PassengerHomeServlet?error=invalid_ride_id");
+            logger.severe("Invalid rideId or places: " + rideIdParam + ", " + placesParam);
+            response.sendRedirect("PassengerHomeServlet?error=invalid_ride_id_or_places");
         } catch (SQLException e) {
             // Log the error
             logger.severe("Database error: " + e.getMessage());

@@ -44,6 +44,7 @@
                 <td class="py-3 px-6">
                     <form action="PassengerHomeServlet" method="post" class="inline-flex space-x-2">
                         <input type="hidden" name="rideId" value="${ride.id}">
+                        <input type="number" name="places" min="1" max="${ride.numberOfPlaces}" required class="border rounded-md py-2 px-4">
                         <button type="submit" name="action" value="accept"
                                 class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">Accept</button>
                         <button type="submit" name="action" value="decline"
