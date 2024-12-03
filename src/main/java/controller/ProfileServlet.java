@@ -21,6 +21,7 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         int userId = (int) session.getAttribute("user_id");
+        String role = (String) session.getAttribute("role");
 
         if (userId == 0) {
             response.sendRedirect("login.jsp");
@@ -31,6 +32,7 @@ public class ProfileServlet extends HttpServlet {
             User user = userDAO.getUserById(userId);
             if (user != null) {
                 request.setAttribute("user", user);
+                request.setAttribute("role", role);
 
                 String message = (String) session.getAttribute("message");
                 if (message != null) {
