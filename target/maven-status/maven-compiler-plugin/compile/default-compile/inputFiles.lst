@@ -1,6 +1,8 @@
 Y:\GitHub\Management-Carpooling-Services\src\main\java\controller\RideRequestServlet.java
 Y:\GitHub\Management-Carpooling-Services\src\main\java\controller\CreateRideServlet.java
 Y:\GitHub\Management-Carpooling-Services\src\main\java\controller\DriverRidesServlet.java
+Y:\GitHub\Management-Carpooling-Services\src\main\java\controller\MyRideServlet.java
+Y:\GitHub\Management-Carpooling-Services\src\main\java\controller\PassengerHomeServlet.java
 Y:\GitHub\Management-Carpooling-Services\src\main\java\database\DatabaseConnection.java
 Y:\GitHub\Management-Carpooling-Services\src\main\java\database\RideDAO.java
 Y:\GitHub\Management-Carpooling-Services\src\main\java\models\Ride.java

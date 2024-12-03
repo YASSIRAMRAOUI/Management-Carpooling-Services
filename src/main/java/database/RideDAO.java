@@ -224,7 +224,6 @@ public class RideDAO {
                     ride.setNumberOfPlaces(resultSet.getInt("number_of_places"));
                     ride.setStatus(resultSet.getString("status"));
                     ride.setDriverName(resultSet.getString("driver_name"));
-
                     availableRides.add(ride);
                 }
             }
@@ -295,7 +294,7 @@ public class RideDAO {
                     ride.setDestination(resultSet.getString("destination"));
                     ride.setFare(resultSet.getDouble("fare"));
                     ride.setStatus(resultSet.getString("status"));
-                    ride.setDriverName(resultSet.getString("driver_name"));
+                    ride.setPassengerName(resultSet.getString("driver_name"));
 
                     rideHistory.add(ride);
                 }

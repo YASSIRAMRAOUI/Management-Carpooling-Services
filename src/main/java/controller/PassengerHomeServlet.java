@@ -32,11 +32,6 @@ public class PassengerHomeServlet extends HttpServlet {
         try {
             List<Ride> availableRides = rideDAO.getAvailableRides();
 
-            for (Ride ride : availableRides) {
-                System.out.println("Ride details: " + ride.getDriverName() + ", " + ride.getDepart() + " to "
-                        + ride.getDestination());
-            }
-
             request.setAttribute("availableRides", availableRides);
 
             request.getRequestDispatcher("passengerHome.jsp").forward(request, response);
