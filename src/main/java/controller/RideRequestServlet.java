@@ -31,7 +31,7 @@ public class RideRequestServlet extends HttpServlet {
         try {
             rideDAO.updateExpiredRides();
 
-            List<Ride> allRides = rideDAO.getAllRides();
+            List<Ride> allRides = rideDAO.getRidesByDriver(driverId);
             request.setAttribute("rideRequests", allRides);
             request.getRequestDispatcher("rideRequests.jsp").forward(request, response);
 
