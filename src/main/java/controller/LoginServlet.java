@@ -22,39 +22,33 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         String email = request.getParameter("email").trim();
         String password = request.getParameter("password");
-        String remember = request.getParameter("remember"); // "on" if checked, null if unchecked
+        String remember = request.getParameter("remember");
 
         try {
             User user = userDAO.getUserByEmail(email);
 
             if (user != null && BCrypt.checkpw(password, user.getPassword())) {
-                // Password is correct, create session
                 HttpSession session = request.getSession();
                 session.setAttribute("user_id", user.getUserId());
                 session.setAttribute("name", user.getName());
                 session.setAttribute("role", user.getRole());
 
-                // Handle "Remember Me" functionality
                 if ("on".equals(remember)) {
-                    // Create a cookie to remember the email
                     Cookie emailCookie = new Cookie("rememberedEmail", email);
-                    emailCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+                    emailCookie.setMaxAge(60 * 60 * 24 * 30);
                     response.addCookie(emailCookie);
                 } else {
-                    // Remove the cookie if "Remember Me" is not checked
                     Cookie emailCookie = new Cookie("rememberedEmail", "");
-                    emailCookie.setMaxAge(0); // Delete the cookie
+                    emailCookie.setMaxAge(0);
                     response.addCookie(emailCookie);
                 }
 
-                // Redirect based on role
                 if ("Driver".equals(user.getRole())) {
                     response.sendRedirect("DriverHomeServlet");
                 } else {
                     response.sendRedirect("PassengerHomeServlet");
                 }
             } else {
-                // Invalid email or password
                 request.setAttribute("errorMessage", "Invalid email or password. Please try again.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             }

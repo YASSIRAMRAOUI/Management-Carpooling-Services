@@ -30,23 +30,19 @@ public class PassengerHomeServlet extends HttpServlet {
         }
 
         try {
-            List<Ride> availableRides = rideDAO.getAvailableRides(); // Fetch rides with all fields populated
+            List<Ride> availableRides = rideDAO.getAvailableRides();
 
-            // Print ride details to the console for debugging
             for (Ride ride : availableRides) {
-                System.out.println("Ride details: " + ride.getDriverName() + ", " + ride.getDepart() + " to " + ride.getDestination());
+                System.out.println("Ride details: " + ride.getDriverName() + ", " + ride.getDepart() + " to "
+                        + ride.getDestination());
             }
 
-            // Set the list of available rides as a request attribute
             request.setAttribute("availableRides", availableRides);
 
-            // Forward to passengerHome.jsp with the rides data
             request.getRequestDispatcher("passengerHome.jsp").forward(request, response);
         } catch (SQLException e) {
-            // Log the exception for debugging
             e.printStackTrace();
 
-            // Handle database access error
             throw new ServletException("Database access error", e);
         }
     }
@@ -55,7 +51,8 @@ public class PassengerHomeServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user_id") == null || !"Passenger".equals(session.getAttribute("role"))) {
+        if (session == null || session.getAttribute("user_id") == null
+                || !"Passenger".equals(session.getAttribute("role"))) {
             response.sendRedirect("login.jsp");
             return;
         }
@@ -81,14 +78,10 @@ public class PassengerHomeServlet extends HttpServlet {
                 return;
             }
 
-            // Redirect to refresh available rides
             response.sendRedirect("PassengerHomeServlet");
         } catch (NumberFormatException e) {
-            // Log the error (optional)
-            System.err.println("Invalid rideId: " + rideIdParam);
             response.sendRedirect("PassengerHomeServlet?error=invalid_ride_id");
         } catch (SQLException e) {
-            // Log the error
             e.printStackTrace();
             response.sendRedirect("PassengerHomeServlet?error=database_error");
         }

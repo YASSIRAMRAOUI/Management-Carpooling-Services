@@ -87,7 +87,7 @@ public class RideDAO {
 
     // Method to get all ride requests for a driver
     public List<Ride> getAllRides() throws SQLException {
-        String sql = "SELECT id, driver_id, date, depart, destination, number_of_places, fare, status FROM rides";
+        String sql = "SELECT id, driver_id, date, depart, destination, number_of_places, fare, status FROM rides WHERE driver_id = ?";
         List<Ride> allRides = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -202,15 +202,15 @@ public class RideDAO {
     }
 
     public List<Ride> getAvailableRides() throws SQLException {
-        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name " +
+        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name "
+                +
                 "FROM rides r " +
                 "JOIN users u ON r.driver_id = u.user_id " +
                 "WHERE r.status = 'In Progress' AND r.number_of_places > 0 ";
 
         List<Ride> availableRides = new ArrayList<>();
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
+                PreparedStatement statement = connection.prepareStatement(sql)) {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -239,8 +239,8 @@ public class RideDAO {
 
         try (Connection connection = DatabaseConnection.getConnection()) {
             try (PreparedStatement decreaseSeatsStmt = connection.prepareStatement(decreaseSeatsSQL);
-                 PreparedStatement checkFullStmt = connection.prepareStatement(checkFullSQL);
-                 PreparedStatement insertRequestStmt = connection.prepareStatement(insertRequestSQL)) {
+                    PreparedStatement checkFullStmt = connection.prepareStatement(checkFullSQL);
+                    PreparedStatement insertRequestStmt = connection.prepareStatement(insertRequestSQL)) {
 
                 connection.setAutoCommit(false); // Start transaction
 
@@ -265,11 +265,42 @@ public class RideDAO {
     public void declineRide(Integer passengerId, int rideId) throws SQLException {
         String sql = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Declined')";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, rideId);
             statement.setInt(2, passengerId);
             statement.executeUpdate();
         }
     }
 
+    // Get ride history for a passenger
+    public List<Ride> getRideHistoryByPassenger(int passengerId) throws SQLException {
+        String sql = "SELECT r.id, r.date, r.depart, r.destination, r.fare, r.status, u.name AS driver_name " +
+                "FROM rides r " +
+                "JOIN ride_requests rr ON r.id = rr.ride_id " +
+                "JOIN users u ON r.driver_id = u.user_id " +
+                "WHERE rr.passenger_id = ? " +
+                "ORDER BY r.date DESC";
+
+        List<Ride> rideHistory = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, passengerId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Ride ride = new Ride();
+                    ride.setId(resultSet.getInt("id"));
+                    ride.setDate(resultSet.getDate("date"));
+                    ride.setDepart(resultSet.getString("depart"));
+                    ride.setDestination(resultSet.getString("destination"));
+                    ride.setFare(resultSet.getDouble("fare"));
+                    ride.setStatus(resultSet.getString("status"));
+                    ride.setDriverName(resultSet.getString("driver_name"));
+
+                    rideHistory.add(ride);
+                }
+            }
+        }
+        return rideHistory;
+    }
 }

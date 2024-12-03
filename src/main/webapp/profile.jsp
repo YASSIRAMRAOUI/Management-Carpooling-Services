@@ -3,22 +3,17 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page isELIgnored="false" %>
 
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <script>
-        // Automatically hide the alert after a few seconds
         function hideAlert() {
             setTimeout(() => {
                 const alertBox = document.getElementById('alert-box');
                 if (alertBox) {
-                    alertBox.classList.add('opacity-0');  // Fade out effect
-                    setTimeout(() => alertBox.remove(), 500); // Remove after fade out
+                    alertBox.classList.add('opacity-0');
+                    setTimeout(() => alertBox.remove(), 500);
                 }
-            }, 3000); // 3 seconds
+            }, 3000);
         }
     </script>
 </head>
@@ -26,7 +21,14 @@
 
 <div class="flex">
 
-    <jsp:include page="sidebar.jsp" />
+    <c:choose>
+        <c:when test="${role == 'admin'}">
+            <jsp:include page="sidebar.jsp" />
+        </c:when>
+        <c:otherwise>
+            <jsp:include page="userSidebar.jsp" />
+        </c:otherwise>
+    </c:choose>
 
     <div class="flex-1 px-4 place-content-center">
         <c:if test="${not empty errorMessage}">
@@ -77,4 +79,3 @@
     </div>
 </div>
 </body>
-</html>
