@@ -87,7 +87,7 @@ public class RideDAO {
 
     // Method to get all ride requests for a driver
     public List<Ride> getAllRides() throws SQLException {
-        String sql = "SELECT id, driver_id, date, depart, destination, number_of_places, fare, status FROM rides";
+        String sql = "SELECT id, driver_id, date, depart, destination, number_of_places, fare, status FROM rides WHERE driver_id = ?";
         List<Ride> allRides = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
@@ -199,5 +199,108 @@ public class RideDAO {
 
             System.out.println("Updated " + affectedRows + " expired rides to 'Completed' status.");
         }
+    }
+
+    public List<Ride> getAvailableRides() throws SQLException {
+        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name "
+                +
+                "FROM rides r " +
+                "JOIN users u ON r.driver_id = u.user_id " +
+                "WHERE r.status = 'In Progress' AND r.number_of_places > 0 ";
+
+        List<Ride> availableRides = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Ride ride = new Ride();
+                    ride.setId(resultSet.getInt("id"));
+                    ride.setDriverId(resultSet.getInt("driver_id"));
+                    ride.setDate(resultSet.getDate("date"));
+                    ride.setDepart(resultSet.getString("depart"));
+                    ride.setDestination(resultSet.getString("destination"));
+                    ride.setFare(resultSet.getDouble("fare"));
+                    ride.setNumberOfPlaces(resultSet.getInt("number_of_places"));
+                    ride.setStatus(resultSet.getString("status"));
+                    ride.setDriverName(resultSet.getString("driver_name"));
+
+                    availableRides.add(ride);
+                }
+            }
+        }
+        return availableRides;
+    }
+
+    public void acceptRide(Integer passengerId, int rideId) throws SQLException {
+        String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - 1 WHERE id = ?";
+        String checkFullSQL = "UPDATE rides SET status = 'Completed' WHERE id = ? AND number_of_places <= 0";
+        String insertRequestSQL = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Accepted')";
+
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            try (PreparedStatement decreaseSeatsStmt = connection.prepareStatement(decreaseSeatsSQL);
+                    PreparedStatement checkFullStmt = connection.prepareStatement(checkFullSQL);
+                    PreparedStatement insertRequestStmt = connection.prepareStatement(insertRequestSQL)) {
+
+                connection.setAutoCommit(false); // Start transaction
+
+                insertRequestStmt.setInt(1, rideId);
+                insertRequestStmt.setInt(2, passengerId);
+                insertRequestStmt.executeUpdate();
+
+                decreaseSeatsStmt.setInt(1, rideId);
+                decreaseSeatsStmt.executeUpdate();
+
+                checkFullStmt.setInt(1, rideId);
+                checkFullStmt.executeUpdate();
+
+                connection.commit(); // Commit transaction
+            } catch (SQLException e) {
+                connection.rollback(); // Rollback on failure
+                throw e;
+            }
+        }
+    }
+
+    public void declineRide(Integer passengerId, int rideId) throws SQLException {
+        String sql = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Declined')";
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, rideId);
+            statement.setInt(2, passengerId);
+            statement.executeUpdate();
+        }
+    }
+
+    // Get ride history for a passenger
+    public List<Ride> getRideHistoryByPassenger(int passengerId) throws SQLException {
+        String sql = "SELECT r.id, r.date, r.depart, r.destination, r.fare, r.status, u.name AS driver_name " +
+                "FROM rides r " +
+                "JOIN ride_requests rr ON r.id = rr.ride_id " +
+                "JOIN users u ON r.driver_id = u.user_id " +
+                "WHERE rr.passenger_id = ? " +
+                "ORDER BY r.date DESC";
+
+        List<Ride> rideHistory = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, passengerId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Ride ride = new Ride();
+                    ride.setId(resultSet.getInt("id"));
+                    ride.setDate(resultSet.getDate("date"));
+                    ride.setDepart(resultSet.getString("depart"));
+                    ride.setDestination(resultSet.getString("destination"));
+                    ride.setFare(resultSet.getDouble("fare"));
+                    ride.setStatus(resultSet.getString("status"));
+                    ride.setDriverName(resultSet.getString("driver_name"));
+
+                    rideHistory.add(ride);
+                }
+            }
+        }
+        return rideHistory;
     }
 }
