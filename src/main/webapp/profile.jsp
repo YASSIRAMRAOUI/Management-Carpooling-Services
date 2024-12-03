@@ -22,11 +22,11 @@
 <div class="flex">
 
     <c:choose>
-        <c:when test="${role == 'admin'}">
-            <jsp:include page="sidebar.jsp" />
+        <c:when test="${role == 'passenger'}">
+            <jsp:include page="userSidebar.jsp" />
         </c:when>
         <c:otherwise>
-            <jsp:include page="userSidebar.jsp" />
+            <jsp:include page="sidebar.jsp" />
         </c:otherwise>
     </c:choose>
 
