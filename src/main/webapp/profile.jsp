@@ -26,7 +26,7 @@
             <jsp:include page="userSidebar.jsp" />
         </c:when>
         <c:otherwise>
-            <jsp:include page="sidebar.jsp" />
+            <jsp:include page="userSidebar.jsp" />
         </c:otherwise>
     </c:choose>
 

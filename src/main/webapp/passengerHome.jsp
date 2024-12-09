@@ -59,11 +59,17 @@
                         </div>
 
                         <div class="flex items-center text-gray-700">
-                            <i class="fas fa-dollar-sign text-yellow-500 text-xl mr-1"></i>
+                            <i class="fa-solid fa-user-group text-yellow-500 text-xl mr-1"></i>
+                            <span>Number of places:</span>
+                            <span class="font-bold text-green-600 ml-1 mr-1">${ride.numberOfPlaces}</span>
+                        </div>
+                    </div>
+
+                        <form action="PassengerHomeServlet" method="post" class="mt-2 flex justify-between">
+                        <div class="flex items-center text-gray-700">
+                            <i class="fa-solid fa-person text-yellow-500 text-xl mr-1"></i>
                             <span>Places:</span>
                         </div>
-
-                        <form action="PassengerHomeServlet" method="post" class="mt-2 flex justify-end">
                             <input type="hidden" name="rideId" value="${ride.id}">
                             <input type="number" name="place" min="1" max="${ride.numberOfPlaces}" required class="border rounded-md py-2 px-1">
                             <button type="submit" name="action" value="accept"
@@ -74,7 +80,6 @@
                                 Accept
                             </button>
                         </form>
-                    </div>
                 </div>
             </c:forEach>
         </div>
