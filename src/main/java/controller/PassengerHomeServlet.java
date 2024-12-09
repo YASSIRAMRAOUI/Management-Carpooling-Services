@@ -54,6 +54,7 @@ public class PassengerHomeServlet extends HttpServlet {
 
         String action = request.getParameter("action");
         String rideIdParam = request.getParameter("rideId");
+        String placeParam = request.getParameter("place");
         Integer passengerId = (Integer) session.getAttribute("user_id");
 
         if (action == null || rideIdParam == null) {
@@ -63,9 +64,10 @@ public class PassengerHomeServlet extends HttpServlet {
 
         try {
             int rideId = Integer.parseInt(rideIdParam);
+            int place = Integer.parseInt(placeParam);
 
             if ("accept".equals(action)) {
-                rideDAO.acceptRide(passengerId, rideId);
+                rideDAO.acceptRide(passengerId, rideId, place);
             } else if ("decline".equals(action)) {
                 rideDAO.declineRide(passengerId, rideId);
             } else {
@@ -79,6 +81,7 @@ public class PassengerHomeServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
             response.sendRedirect("PassengerHomeServlet?error=database_error");
+            throw new ServletException("Database access error", e);
         }
     }
 

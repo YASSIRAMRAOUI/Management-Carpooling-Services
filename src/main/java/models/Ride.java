@@ -14,13 +14,14 @@ public class Ride {
     private int numberOfPlaces;
     private String passengerPhone;
     private String driverName;
+    private int place;
 
     // Constructors
     public Ride() {
     }
 
     public Ride(int id, int driverId, Date date, String depart, String destination, String status, double fare,
-            String passengerName, int numberOfPlaces, String passengerPhone) {
+            String passengerName, int numberOfPlaces, String passengerPhone, String driverName, int place) {
         this.id = id;
         this.driverId = driverId;
         this.date = date;
@@ -31,6 +32,8 @@ public class Ride {
         this.passengerName = passengerName;
         this.numberOfPlaces = numberOfPlaces;
         this.passengerPhone = passengerPhone;
+        this.driverName = driverName;
+        this.place = place;
     }
 
     // Getters and Setters
@@ -120,5 +123,13 @@ public class Ride {
 
     public void setDriverName(String driverName) {
         this.driverName = driverName;
+    }
+
+    public int getPlace() {
+        return place;
+    }
+
+    public void setPlace(int place) {
+        this.place = place;
     }
 }

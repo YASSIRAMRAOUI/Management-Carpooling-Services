@@ -53,13 +53,19 @@
 
                     <div class="flex items-center justify-between">
                         <div class="flex items-center text-gray-700">
-                            <i class="fas fa-dollar-sign text-yellow-500 text-xl mr-1"></i>
+                            <i class="fas fa-dollar-sign text-yellow-500 text-xl mr-2"></i>
                             <span>Fare:</span>
-                            <span class="font-bold text-green-600 ml-1">${ride.fare} dh</span>
+                            <span class="font-bold text-green-600 ml-1 mr-1">${ride.fare} dh</span>
+                        </div>
+
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-dollar-sign text-yellow-500 text-xl mr-1"></i>
+                            <span>Places:</span>
                         </div>
 
                         <form action="PassengerHomeServlet" method="post" class="mt-2 flex justify-end">
                             <input type="hidden" name="rideId" value="${ride.id}">
+                            <input type="number" name="place" min="1" max="${ride.numberOfPlaces}" required class="border rounded-md py-2 px-1">
                             <button type="submit" name="action" value="accept"
                                     class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-md flex items-center focus:outline-none focus:ring-2 focus:ring-green-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

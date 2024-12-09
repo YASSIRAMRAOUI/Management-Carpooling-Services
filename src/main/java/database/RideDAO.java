@@ -202,7 +202,7 @@ public class RideDAO {
     }
 
     public List<Ride> getAvailableRides() throws SQLException {
-        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name "
+        String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name, r.number_of_places AS place "
                 +
                 "FROM rides r " +
                 "JOIN users u ON r.driver_id = u.user_id " +
@@ -231,10 +231,10 @@ public class RideDAO {
         return availableRides;
     }
 
-    public void acceptRide(Integer passengerId, int rideId) throws SQLException {
-        String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - 1 WHERE id = ?";
+    public void acceptRide(Integer passengerId, int rideId, int place) throws SQLException {
+        String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - ? WHERE id = ?";
         String checkFullSQL = "UPDATE rides SET status = 'Completed' WHERE id = ? AND number_of_places <= 0";
-        String insertRequestSQL = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Accepted')";
+        String insertRequestSQL = "INSERT INTO ride_requests (ride_id, passenger_id, status, place) VALUES (?, ?, 'Accepted', ?)";
 
         try (Connection connection = DatabaseConnection.getConnection()) {
             try (PreparedStatement decreaseSeatsStmt = connection.prepareStatement(decreaseSeatsSQL);
@@ -245,9 +245,12 @@ public class RideDAO {
 
                 insertRequestStmt.setInt(1, rideId);
                 insertRequestStmt.setInt(2, passengerId);
+                insertRequestStmt.setInt(3, place);
                 insertRequestStmt.executeUpdate();
 
-                decreaseSeatsStmt.setInt(1, rideId);
+                decreaseSeatsStmt.setInt(1, place);
+                decreaseSeatsStmt.setInt(2, rideId);
+
                 decreaseSeatsStmt.executeUpdate();
 
                 checkFullStmt.setInt(1, rideId);
@@ -257,6 +260,8 @@ public class RideDAO {
             } catch (SQLException e) {
                 connection.rollback(); // Rollback on failure
                 throw e;
+            } finally {
+                connection.setAutoCommit(true);
             }
         }
     }
@@ -294,7 +299,7 @@ public class RideDAO {
                     ride.setDestination(resultSet.getString("destination"));
                     ride.setFare(resultSet.getDouble("fare"));
                     ride.setStatus(resultSet.getString("status"));
-                    ride.setPassengerName(resultSet.getString("driver_name"));
+                    ride.setDriverName(resultSet.getString("driver_name"));
 
                     rideHistory.add(ride);
                 }
