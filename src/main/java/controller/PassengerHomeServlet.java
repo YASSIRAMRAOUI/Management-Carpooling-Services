@@ -47,7 +47,7 @@ public class PassengerHomeServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user_id") == null
-                || !"Passenger".equals(session.getAttribute("role"))) {
+                || !"passenger".equals(session.getAttribute("role"))) {
             response.sendRedirect("login.jsp");
             return;
         }

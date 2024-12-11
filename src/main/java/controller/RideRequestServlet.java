@@ -51,7 +51,7 @@ public class RideRequestServlet extends HttpServlet {
             } else if ("reject".equals(action)) {
                 rideDAO.updateRideRequestStatus(requestId, "Rejected");
             }
-            response.sendRedirect("RideRequestServlet"); // Refresh the ride requests page
+            response.sendRedirect("RideRequestServlet");
         } catch (SQLException e) {
             throw new ServletException("Database error while updating ride request status", e);
         }

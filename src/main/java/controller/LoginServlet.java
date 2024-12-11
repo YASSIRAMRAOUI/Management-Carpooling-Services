@@ -43,7 +43,7 @@ public class LoginServlet extends HttpServlet {
                     response.addCookie(emailCookie);
                 }
 
-                if ("Driver".equals(user.getRole())) {
+                if ("driver".equals(user.getRole())) {
                     response.sendRedirect("DriverHomeServlet");
                 } else {
                     response.sendRedirect("PassengerHomeServlet");

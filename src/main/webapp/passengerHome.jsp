@@ -10,14 +10,11 @@
 <div class="flex">
     <jsp:include page="userSidebar.jsp" />
 
-    <!-- Main Content -->
     <div class="flex-1 p-6">
-        <!-- Header Section -->
         <h2 class="text-2xl font-semibold mb-4">
             Welcome, <span class="text-indigo-600"><%= session.getAttribute("name") %></span>
         </h2>
 
-        <!-- Available Rides Section -->
         <h1 class="text-3xl font-bold mb-6 text-gray-800">Available Rides</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -34,7 +31,6 @@
                             <h3 class="text-lg font-semibold text-gray-700">${ride.driverName}</h3>
                         </div>
                     </div>
-                    <!-- Ride Information -->
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center">
                             <i class="fa-solid fa-plane-departure text-blue-500 text-l mr-2"></i>

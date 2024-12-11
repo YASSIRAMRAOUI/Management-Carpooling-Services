@@ -34,7 +34,7 @@ public class UserDAO {
 
             statement.setString(1, user.getName());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword()); // Store hashed password
+            statement.setString(3, user.getPassword());
             statement.setString(4, user.getPhoneNumber());
             statement.setString(5, user.getRole());
 
@@ -101,11 +101,9 @@ public class UserDAO {
                     Timestamp createdAt = resultSet.getTimestamp("created_at");
                     LocalDateTime tokenTime = createdAt.toLocalDateTime();
 
-                    // Check if the token is still valid (e.g., within 24 hours)
                     if (ChronoUnit.HOURS.between(tokenTime, LocalDateTime.now()) <= 24) {
                         return true;
                     } else {
-                        // Token expired, so delete it
                         deletePasswordResetToken(token);
                     }
                 }
@@ -122,9 +120,8 @@ public class UserDAO {
 
         Connection connection = DatabaseConnection.getConnection();
         try {
-            connection.setAutoCommit(false); // Begin transaction
+            connection.setAutoCommit(false);
 
-            // Get the user associated with the token
             int userId = -1;
             try (PreparedStatement getUserStmt = connection.prepareStatement(getUserSql)) {
                 getUserStmt.setString(1, token);
@@ -136,32 +133,29 @@ public class UserDAO {
             }
 
             if (userId != -1) {
-                // Hash the new password before saving it
                 String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 
-                // Update the user's password with the hashed password
                 try (PreparedStatement updatePasswordStmt = connection.prepareStatement(updatePasswordSql)) {
                     updatePasswordStmt.setString(1, hashedPassword);
                     updatePasswordStmt.setInt(2, userId);
                     updatePasswordStmt.executeUpdate();
                 }
 
-                // Delete the token after updating the password
                 try (PreparedStatement deleteTokenStmt = connection.prepareStatement(deleteTokenSql)) {
                     deleteTokenStmt.setString(1, token);
                     deleteTokenStmt.executeUpdate();
                 }
 
-                connection.commit(); // Commit transaction
+                connection.commit();
             } else {
                 throw new SQLException("Invalid password reset token.");
             }
 
         } catch (SQLException e) {
-            connection.rollback(); // Rollback transaction if there's an error
+            connection.rollback();
             throw e;
         } finally {
-            connection.setAutoCommit(true); // Reset auto-commit mode
+            connection.setAutoCommit(true);
             connection.close();
         }
     }
@@ -211,6 +205,7 @@ public class UserDAO {
         }
     }
 
+    // Method to update user password
     public boolean isEmailDuplicate(String email, int userId) throws SQLException {
         String query = "SELECT COUNT(*) FROM users WHERE email = ? AND user_id != ?";
         try (Connection connection = DatabaseConnection.getConnection();
@@ -219,7 +214,7 @@ public class UserDAO {
             statement.setInt(2, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    return resultSet.getInt(1) > 0; // If count is greater than 0, email exists for a different user
+                    return resultSet.getInt(1) > 0;
                 }
             }
         }

@@ -201,6 +201,7 @@ public class RideDAO {
         }
     }
 
+    // Get available rides
     public List<Ride> getAvailableRides() throws SQLException {
         String sql = "SELECT r.id, r.driver_id, r.date, r.depart, r.destination, r.number_of_places, r.status, r.fare, u.name AS driver_name, r.number_of_places AS place "
                 +
@@ -231,6 +232,7 @@ public class RideDAO {
         return availableRides;
     }
 
+    // Get ride requests for a driver
     public void acceptRide(Integer passengerId, int rideId, int place) throws SQLException {
         String decreaseSeatsSQL = "UPDATE rides SET number_of_places = number_of_places - ? WHERE id = ?";
         String checkFullSQL = "UPDATE rides SET status = 'Completed' WHERE id = ? AND number_of_places <= 0";
@@ -266,6 +268,7 @@ public class RideDAO {
         }
     }
 
+    // Decline a ride request
     public void declineRide(Integer passengerId, int rideId) throws SQLException {
         String sql = "INSERT INTO ride_requests (ride_id, passenger_id, status) VALUES (?, ?, 'Declined')";
         try (Connection connection = DatabaseConnection.getConnection();

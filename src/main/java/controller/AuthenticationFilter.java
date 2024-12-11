@@ -18,13 +18,10 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpSession session = req.getSession(false);
 
-        // Check if user is logged in
         if (session == null || session.getAttribute("user_id") == null) {
-            // Not logged in, redirect to login page
             HttpServletResponse res = (HttpServletResponse) response;
             res.sendRedirect(req.getContextPath() + "/login.jsp");
         } else {
-            // Logged in, proceed with the request
             chain.doFilter(request, response);
         }
     }

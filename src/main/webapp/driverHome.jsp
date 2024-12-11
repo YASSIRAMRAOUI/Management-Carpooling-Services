@@ -3,11 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page isELIgnored="false" %>
 
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Dashboard</title>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
@@ -23,11 +19,9 @@
         </button>
     </div>
     <script>
-        // Fade out the alert after 5 seconds
         setTimeout(function() {
             document.getElementById('alert').classList.add('opacity-0');
         }, 5000);
-        // Remove alert from DOM after fading out
         setTimeout(function() {
             document.getElementById('alert').remove();
         }, 6000);

@@ -25,17 +25,13 @@ public class ForgotPasswordServlet extends HttpServlet {
         try {
             User user = userDAO.getUserByEmail(email);
             if (user != null) {
-                // Generate a unique token for password reset
                 String resetToken = UUID.randomUUID().toString();
 
-                // Save the token to the database (optional)
                 userDAO.savePasswordResetToken(user.getUserId(), resetToken);
 
-                // Construct the reset link
                 String resetLink = request.getRequestURL().toString().replace("ForgotPasswordServlet",
                         "ResetPasswordServlet") + "?token=" + resetToken;
 
-                // Send the reset link via email (simulated here)
                 sendPasswordResetEmail(email, resetLink);
 
                 request.setAttribute("message", "A password reset link has been sent to your email.");

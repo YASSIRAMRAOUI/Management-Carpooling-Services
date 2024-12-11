@@ -37,7 +37,6 @@ public class DriverRidesServlet extends HttpServlet {
         }
     }
 
-    // Handle post requests for actions like update or delete
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");

@@ -33,22 +33,20 @@ public class DriverHomeServlet extends HttpServlet {
             int totalRides = rideDAO.getTotalRidesByDriver(driverId);
             int pendingRequests = rideDAO.getPendingRequestsByDriver(driverId);
             double earnings = rideDAO.getEarningsByDriver(driverId);
-            // Check for success message
+
             String rideAddedMessage = (String) session.getAttribute("rideAdded");
             if (rideAddedMessage != null) {
                 request.setAttribute("rideAddedMessage", rideAddedMessage);
-                session.removeAttribute("rideAdded"); // Clear after retrieving
+                session.removeAttribute("rideAdded");
             }
 
             List<Ride> recentRides = rideDAO.getRecentRidesByDriver(driverId);
 
-            // Set attributes for JSP
             request.setAttribute("totalRides", totalRides);
             request.setAttribute("pendingRequests", pendingRequests);
             request.setAttribute("earnings", earnings);
             request.setAttribute("recentRides", recentRides);
 
-            // Forward to driverHome.jsp
             request.getRequestDispatcher("driverHome.jsp").forward(request, response);
         } catch (SQLException e) {
             throw new ServletException("Database access error", e);

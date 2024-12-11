@@ -29,7 +29,6 @@ public class ResetPasswordServlet extends HttpServlet {
         String newPassword = request.getParameter("newPassword");
 
         try {
-            // Verify token and reset password
             boolean isTokenValid = userDAO.verifyPasswordResetToken(token);
             if (isTokenValid) {
                 userDAO.updatePassword(token, newPassword);

@@ -13,7 +13,6 @@ public class DatabaseConnection {
     private static String password;
     private static String driverClass;
 
-    // Static block to load properties and initialize the driver
     static {
         try (InputStream input = DatabaseConnection.class.getClassLoader()
                 .getResourceAsStream("database/databaseConnection.properties")) {
@@ -29,14 +28,12 @@ public class DatabaseConnection {
             password = prop.getProperty("db.password");
             driverClass = prop.getProperty("db.driver");
 
-            // Load the driver class
             Class.forName(driverClass);
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Failed to load database configuration", e);
         }
     }
 
-    // Method to establish and return a connection
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, user, password);
     }
