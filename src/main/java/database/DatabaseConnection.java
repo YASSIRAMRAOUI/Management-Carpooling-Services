@@ -15,7 +15,7 @@ public class DatabaseConnection {
 
     static {
         try (InputStream input = DatabaseConnection.class.getClassLoader()
-                .getResourceAsStream("database/databaseConnection.properties")) {
+                .getResourceAsStream("databaseConnection.properties")) {
             if (input == null) {
                 throw new RuntimeException("Unable to find databaseConnection.properties");
             }
