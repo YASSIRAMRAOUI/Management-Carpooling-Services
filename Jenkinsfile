@@ -16,20 +16,22 @@ pipeline {
             steps {
                 echo 'Checking out source code...'
                 checkout scm
+                // Ensure Maven Wrapper is executable on *nix agents
+                sh 'chmod +x mvnw || true'
             }
         }
         
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                sh 'mvn clean compile -DskipTests'
+                sh './mvnw clean compile -DskipTests'
             }
         }
         
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                sh 'mvn test'
+                sh './mvnw test'
             }
             post {
                 always {
@@ -56,7 +58,7 @@ pipeline {
                         echo 'Running SonarQube analysis...'
                         withSonarQubeEnv('sonar_integration') {
                             sh '''
-                                mvn sonar:sonar \
+                                ./mvnw sonar:sonar \
                                 -Dsonar.projectKey=carpooling-service \
                                 -Dsonar.projectName="Carpooling Service" \
                                 -Dsonar.projectVersion=${BUILD_NUMBER} \
@@ -74,7 +76,7 @@ pipeline {
                 stage('Checkstyle Analysis') {
                     steps {
                         echo 'Running Checkstyle analysis...'
-                        sh 'mvn checkstyle:check || true'
+                        sh './mvnw checkstyle:check || true'
                     }
                     post {
                         always {
@@ -110,7 +112,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Creating WAR package...'
-                sh 'mvn package -DskipTests'
+                sh './mvnw package -DskipTests'
             }
             post {
                 success {
@@ -124,7 +126,7 @@ pipeline {
             steps {
                 echo 'Running OWASP Dependency Check...'
                 sh '''
-                    mvn org.owasp:dependency-check-maven:check \
+                    ./mvnw org.owasp:dependency-check-maven:check \
                     -DfailBuildOnCVSS=7 \
                     -DsuppressionFile=suppressions.xml || true
                 '''
@@ -142,9 +144,7 @@ pipeline {
                 }
             }
         }
-        
-        // Docker stages removed for CI-only pipeline
-        
+                
         stage('Publish Artifacts') {
             steps {
                 echo 'Publishing build artifacts...'
