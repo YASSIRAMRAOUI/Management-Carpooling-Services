@@ -34,6 +34,7 @@ pipeline {
                         // Try to find Maven wrapper or use tool
                         if (fileExists('mvnw')) {
                             echo 'Using Maven wrapper (mvnw)'
+                            sh 'chmod +x mvnw'  // Make wrapper executable
                             sh './mvnw -version'
                             sh './mvnw clean compile -DskipTests'
                         } else if (fileExists('mvnw.cmd')) {
@@ -62,6 +63,7 @@ pipeline {
                         // Try to find Maven wrapper
                         if (fileExists('mvnw')) {
                             echo 'Using Maven wrapper (mvnw)'
+                            sh 'chmod +x mvnw'  // Make wrapper executable
                             sh './mvnw test'
                         } else if (fileExists('mvnw.cmd')) {
                             echo 'Using Maven wrapper (mvnw.cmd)'
@@ -113,6 +115,7 @@ pipeline {
                                 } catch (Exception e) {
                                     echo "Maven not found in PATH, trying wrapper..."
                                     if (fileExists('mvnw')) {
+                                        sh 'chmod +x mvnw'  // Make wrapper executable
                                         sh "./mvnw ${sonarCmd}"
                                     } else if (fileExists('mvnw.cmd')) {
                                         sh "./mvnw.cmd ${sonarCmd}"
@@ -134,6 +137,7 @@ pipeline {
                             } catch (Exception e) {
                                 echo "Maven not found in PATH, trying wrapper..."
                                 if (fileExists('mvnw')) {
+                                    sh 'chmod +x mvnw'  // Make wrapper executable
                                     sh './mvnw checkstyle:check || true'
                                 } else if (fileExists('mvnw.cmd')) {
                                     sh './mvnw.cmd checkstyle:check || true'
@@ -178,6 +182,7 @@ pipeline {
                     } catch (Exception e) {
                         echo "Maven not found in PATH, trying wrapper..."
                         if (fileExists('mvnw')) {
+                            sh 'chmod +x mvnw'  // Make wrapper executable
                             sh './mvnw package -DskipTests'
                         } else if (fileExists('mvnw.cmd')) {
                             sh './mvnw.cmd package -DskipTests'
@@ -205,6 +210,7 @@ pipeline {
                     } catch (Exception e) {
                         echo "Maven not found in PATH, trying wrapper..."
                         if (fileExists('mvnw')) {
+                            sh 'chmod +x mvnw'  // Make wrapper executable
                             sh "./mvnw ${depCheckCmd} || true"
                         } else if (fileExists('mvnw.cmd')) {
                             sh "./mvnw.cmd ${depCheckCmd} || true"
