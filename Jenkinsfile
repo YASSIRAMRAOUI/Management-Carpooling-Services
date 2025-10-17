@@ -36,12 +36,19 @@ pipeline {
             }
             post {
                 always {
-                    // Publish test results
-                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    // Publish test results using basic Jenkins functionality
+                    script {
+                        if (fileExists('target/surefire-reports')) {
+                            junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                        }
+                    }
                     
-                    // Publish JaCoCo coverage report
-                    publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
-                                   sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                    // Archive coverage reports as artifacts instead of using publishCoverage
+                    script {
+                        if (fileExists('target/site/jacoco')) {
+                            archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
+                        }
+                    }
                 }
             }
         }
@@ -75,8 +82,12 @@ pipeline {
                     }
                     post {
                         always {
-                            // Record checkstyle results
-                            recordIssues enabledForFailure: true, tools: [checkStyle()]
+                            // Archive checkstyle results as artifacts instead of using recordIssues
+                            script {
+                                if (fileExists('target/checkstyle-result.xml')) {
+                                    archiveArtifacts artifacts: 'target/checkstyle-result.xml', allowEmptyArchive: true
+                                }
+                            }
                         }
                     }
                 }
@@ -116,8 +127,12 @@ pipeline {
             }
             post {
                 always {
-                    // Publish OWASP dependency check results
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                    // Archive OWASP dependency check results as artifacts instead of using dependencyCheckPublisher
+                    script {
+                        if (fileExists('target/dependency-check-report.xml')) {
+                            archiveArtifacts artifacts: 'target/dependency-check-report.xml', allowEmptyArchive: true
+                        }
+                    }
                 }
             }
         }
