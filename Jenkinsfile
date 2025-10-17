@@ -22,14 +22,55 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                sh 'mvn clean compile -DskipTests'
+                script {
+                    try {
+                        // Try to use Maven from PATH first
+                        sh 'mvn -version'
+                        sh 'mvn clean compile -DskipTests'
+                    } catch (Exception e) {
+                        echo "Maven not found in PATH: ${e.getMessage()}"
+                        echo "Attempting to use Maven tool or wrapper..."
+                        
+                        // Try to find Maven wrapper or use tool
+                        if (fileExists('mvnw')) {
+                            echo 'Using Maven wrapper (mvnw)'
+                            sh './mvnw -version'
+                            sh './mvnw clean compile -DskipTests'
+                        } else if (fileExists('mvnw.cmd')) {
+                            echo 'Using Maven wrapper (mvnw.cmd)'
+                            sh './mvnw.cmd -version'
+                            sh './mvnw.cmd clean compile -DskipTests'
+                        } else {
+                            error 'Maven not found! Please install Maven or add Maven wrapper to the project.'
+                        }
+                    }
+                }
             }
         }
         
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                sh 'mvn test'
+                script {
+                    try {
+                        // Try to use Maven from PATH first
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        echo "Maven not found in PATH: ${e.getMessage()}"
+                        echo "Attempting to use Maven wrapper..."
+                        
+                        // Try to find Maven wrapper
+                        if (fileExists('mvnw')) {
+                            echo 'Using Maven wrapper (mvnw)'
+                            sh './mvnw test'
+                        } else if (fileExists('mvnw.cmd')) {
+                            echo 'Using Maven wrapper (mvnw.cmd)'
+                            sh './mvnw.cmd test'
+                        } else {
+                            error 'Maven not found! Please install Maven or add Maven wrapper to the project.'
+                        }
+                    }
+                }
             }
             post {
                 always {
@@ -55,18 +96,31 @@ pipeline {
                     steps {
                         echo 'Running SonarQube analysis...'
                         withSonarQubeEnv('sonar_integration') {
-                            sh '''
-                                mvn sonar:sonar \
-                                -Dsonar.projectKey=carpooling-service \
-                                -Dsonar.projectName="Carpooling Service" \
-                                -Dsonar.projectVersion=${BUILD_NUMBER} \
-                                -Dsonar.sources=src/main/java \
-                                -Dsonar.tests=src/test/java \
-                                -Dsonar.java.binaries=target/classes \
-                                -Dsonar.junit.reportPaths=target/surefire-reports \
-                                -Dsonar.jacoco.reportPaths=target/jacoco.exec \
-                                -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            '''
+                            script {
+                                def sonarCmd = 'sonar:sonar ' +
+                                              '-Dsonar.projectKey=carpooling-service ' +
+                                              '-Dsonar.projectName="Carpooling Service" ' +
+                                              "-Dsonar.projectVersion=${BUILD_NUMBER} " +
+                                              '-Dsonar.sources=src/main/java ' +
+                                              '-Dsonar.tests=src/test/java ' +
+                                              '-Dsonar.java.binaries=target/classes ' +
+                                              '-Dsonar.junit.reportPaths=target/surefire-reports ' +
+                                              '-Dsonar.jacoco.reportPaths=target/jacoco.exec ' +
+                                              '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                                
+                                try {
+                                    sh "mvn ${sonarCmd}"
+                                } catch (Exception e) {
+                                    echo "Maven not found in PATH, trying wrapper..."
+                                    if (fileExists('mvnw')) {
+                                        sh "./mvnw ${sonarCmd}"
+                                    } else if (fileExists('mvnw.cmd')) {
+                                        sh "./mvnw.cmd ${sonarCmd}"
+                                    } else {
+                                        error 'Maven not found for SonarQube analysis!'
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -74,7 +128,20 @@ pipeline {
                 stage('Checkstyle Analysis') {
                     steps {
                         echo 'Running Checkstyle analysis...'
-                        sh 'mvn checkstyle:check || true'
+                        script {
+                            try {
+                                sh 'mvn checkstyle:check || true'
+                            } catch (Exception e) {
+                                echo "Maven not found in PATH, trying wrapper..."
+                                if (fileExists('mvnw')) {
+                                    sh './mvnw checkstyle:check || true'
+                                } else if (fileExists('mvnw.cmd')) {
+                                    sh './mvnw.cmd checkstyle:check || true'
+                                } else {
+                                    echo 'Maven not found for Checkstyle analysis, skipping...'
+                                }
+                            }
+                        }
                     }
                     post {
                         always {
@@ -105,7 +172,20 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Creating WAR package...'
-                sh 'mvn package -DskipTests'
+                script {
+                    try {
+                        sh 'mvn package -DskipTests'
+                    } catch (Exception e) {
+                        echo "Maven not found in PATH, trying wrapper..."
+                        if (fileExists('mvnw')) {
+                            sh './mvnw package -DskipTests'
+                        } else if (fileExists('mvnw.cmd')) {
+                            sh './mvnw.cmd package -DskipTests'
+                        } else {
+                            error 'Maven not found for packaging!'
+                        }
+                    }
+                }
             }
             post {
                 success {
@@ -118,11 +198,21 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo 'Running OWASP Dependency Check...'
-                sh '''
-                    mvn org.owasp:dependency-check-maven:check \
-                    -DfailBuildOnCVSS=7 \
-                    -DsuppressionFile=suppressions.xml || true
-                '''
+                script {
+                    def depCheckCmd = 'org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DsuppressionFile=suppressions.xml'
+                    try {
+                        sh "mvn ${depCheckCmd} || true"
+                    } catch (Exception e) {
+                        echo "Maven not found in PATH, trying wrapper..."
+                        if (fileExists('mvnw')) {
+                            sh "./mvnw ${depCheckCmd} || true"
+                        } else if (fileExists('mvnw.cmd')) {
+                            sh "./mvnw.cmd ${depCheckCmd} || true"
+                        } else {
+                            echo 'Maven not found for OWASP analysis, skipping...'
+                        }
+                    }
+                }
             }
             post {
                 always {
