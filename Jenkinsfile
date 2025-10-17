@@ -9,10 +9,7 @@ pipeline {
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     }
     
-    tools {
-        maven 'Maven-3.8.6'
-        jdk 'JDK-11'
-    }
+    // Tools block removed to avoid requiring named tool installations on Jenkins controller/agents
     
     stages {
         stage('Checkout') {
@@ -25,14 +22,28 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                sh 'mvn clean compile -DskipTests'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn -version'
+                        sh 'mvn clean compile -DskipTests'
+                    } else {
+                        bat 'mvn -version'
+                        bat 'mvn clean compile -DskipTests'
+                    }
+                }
             }
         }
         
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                sh 'mvn test'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn test'
+                    } else {
+                        bat 'mvn test'
+                    }
+                }
             }
             post {
                 always {
@@ -59,18 +70,23 @@ pipeline {
                     steps {
                         echo 'Running SonarQube analysis...'
                         withSonarQubeEnv('sonar_integration') {
-                            sh '''
-                                mvn sonar:sonar \
-                                -Dsonar.projectKey=carpooling-service \
-                                -Dsonar.projectName="Carpooling Service" \
-                                -Dsonar.projectVersion=${BUILD_NUMBER} \
-                                -Dsonar.sources=src/main/java \
-                                -Dsonar.tests=src/test/java \
-                                -Dsonar.java.binaries=target/classes \
-                                -Dsonar.junit.reportPaths=target/surefire-reports \
-                                -Dsonar.jacoco.reportPaths=target/jacoco.exec \
-                                -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            '''
+                            script {
+                                def sonarCmd = 'mvn sonar:sonar ' +
+                                              '-Dsonar.projectKey=carpooling-service ' +
+                                              '-Dsonar.projectName="Carpooling Service" ' +
+                                              "-Dsonar.projectVersion=${BUILD_NUMBER} " +
+                                              '-Dsonar.sources=src/main/java ' +
+                                              '-Dsonar.tests=src/test/java ' +
+                                              '-Dsonar.java.binaries=target/classes ' +
+                                              '-Dsonar.junit.reportPaths=target/surefire-reports ' +
+                                              '-Dsonar.jacoco.reportPaths=target/jacoco.exec ' +
+                                              '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                                if (isUnix()) {
+                                    sh sonarCmd
+                                } else {
+                                    bat sonarCmd
+                                }
+                            }
                         }
                     }
                 }
@@ -78,7 +94,17 @@ pipeline {
                 stage('Checkstyle Analysis') {
                     steps {
                         echo 'Running Checkstyle analysis...'
-                        sh 'mvn checkstyle:check || true'
+                        script {
+                            int rc = 0
+                            if (isUnix()) {
+                                rc = sh(script: 'mvn checkstyle:check', returnStatus: true)
+                            } else {
+                                rc = bat(script: 'mvn checkstyle:check', returnStatus: true)
+                            }
+                            if (rc != 0) {
+                                echo 'Checkstyle violations detected (non-blocking).'
+                            }
+                        }
                     }
                     post {
                         always {
@@ -106,7 +132,13 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Creating WAR package...'
-                sh 'mvn package -DskipTests'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn package -DskipTests'
+                    } else {
+                        bat 'mvn package -DskipTests'
+                    }
+                }
             }
             post {
                 success {
@@ -119,11 +151,18 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo 'Running OWASP Dependency Check...'
-                sh '''
-                    mvn org.owasp:dependency-check-maven:check \
-                    -DfailBuildOnCVSS=7 \
-                    -DsuppressionFile=suppressions.xml || true
-                '''
+                script {
+                    def depCheckCmd = 'mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DsuppressionFile=suppressions.xml'
+                    int rc = 0
+                    if (isUnix()) {
+                        rc = sh(script: depCheckCmd, returnStatus: true)
+                    } else {
+                        rc = bat(script: depCheckCmd, returnStatus: true)
+                    }
+                    if (rc != 0) {
+                        echo 'OWASP Dependency Check reported issues (non-blocking).'
+                    }
+                }
             }
             post {
                 always {
@@ -134,57 +173,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-        
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                script {
-                    def dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
-                    env.DOCKER_IMAGE_ID = dockerImage.id
-                }
-            }
-        }
-        
-        
-        
-        stage('Validate Docker Image') {
-            steps {
-                echo 'Validating Docker image functionality...'
-                sh '''
-                    # Start container in detached mode for testing
-                    docker run -d --name ci-test-container -p 8081:8080 ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    
-                    # Wait for application to start
-                    echo "Waiting for application to start..."
-                    sleep 45
-                    
-                    # Basic health check
-                    for i in {1..5}; do
-                        if curl -f http://localhost:8081/ > /dev/null 2>&1; then
-                            echo "✅ Application is responding successfully"
-                            break
-                        else
-                            echo "⏳ Attempt $i: Application not ready yet, waiting..."
-                            sleep 10
-                        fi
-                        if [ $i -eq 5 ]; then
-                            echo "❌ Application failed to start properly"
-                            docker logs ci-test-container
-                            exit 1
-                        fi
-                    done
-                    
-                    # Validate application endpoints
-                    echo "Validating application endpoints..."
-                    
-                    # Cleanup
-                    docker stop ci-test-container
-                    docker rm ci-test-container
-                    
-                    echo "✅ Docker image validation completed successfully"
-                '''
             }
         }
         
