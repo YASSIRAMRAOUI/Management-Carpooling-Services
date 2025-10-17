@@ -12,8 +12,5 @@ IF NOT EXIST "%WRAPPER_JAR%" (
   powershell -Command "Invoke-WebRequest -UseBasicParsing -OutFile '%WRAPPER_JAR%' '%WRAPPER_URL%'"
 )
 
-FOR /F "tokens=2 delims==" %%A IN ('findstr /R "^distributionUrl=" "%WRAPPER_PROPERTIES%"') DO SET MAVEN_DIST_URL=%%A
-
-SET MVNW_JAVA=java
-
-"%MVNW_JAVA%" -jar "%WRAPPER_JAR%" -Dmaven.home="%BASEDIR%\.mvn" -Dmaven.multiModuleProjectDirectory="%BASEDIR%" -DdistributionUrl="%MAVEN_DIST_URL%" %*
+SET JAVA_EXE=java
+"%JAVA_EXE%" -classpath "%WRAPPER_JAR%" org.apache.maven.wrapper.MavenWrapperMain %*
