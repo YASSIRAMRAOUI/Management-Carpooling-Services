@@ -9,7 +9,10 @@ This project is a **Java EE-based application** designed to streamline and facil
 - [⚙️Project Setup](#project-setup)
   - [📋Prerequisites](#prerequisites)
   - [🚀Installation Steps](#installation-steps)
+- [🔧CI/CD Pipeline](#cicd-pipeline)
+- [🐳Docker Deployment](#docker-deployment)
 - [🌐API Endpoints](#api-endpoints)
+- [🧪Testing](#testing)
 - [🔍Usage](#usage)
 - [🤝Contributing](#contributing)
 - [License](#license)
@@ -29,6 +32,10 @@ This project is a **Java EE-based application** designed to streamline and facil
 - **Frameworks**: Spring (optional), Hibernate
 - **Build Tool**: Maven
 - **Server**: Apache Tomcat
+- **Testing**: JUnit 4, Mockito, JaCoCo (Code Coverage)
+- **Code Quality**: SonarQube, Checkstyle
+- **Security**: OWASP Dependency Check
+- **CI/CD**: Jenkins CI Pipeline
 
 ## ⚙️Project Setup
 
@@ -68,6 +75,40 @@ mvn clean install
 2.  **Start the Apache Tomcat server**.
 3.  **Access the application** via [http://localhost:8080/carpooling-app](http://localhost:8080/carpooling-app).
 
+## 🔧CI Pipeline
+
+This project includes a Jenkins CI pipeline that automates:
+
+### Pipeline Stages:
+1. **Checkout**: Source code retrieval
+2. **Build**: Maven compilation
+3. **Unit Tests**: JUnit test execution with JaCoCo coverage
+4. **Code Quality**: SonarQube analysis and Checkstyle checks
+5. **Security Scan**: OWASP dependency check
+6. **Package**: WAR file creation
+7. **Publish Artifacts**: Prepare artifacts for separate CD pipeline
+
+### Setup Instructions:
+1. Configure Jenkins with required plugins (see `jenkins-config.md`)
+2. Configure SonarQube server connection with ID `sonar_integration`
+3. Create pipeline job pointing to `Jenkinsfile`
+
+### Quick Local Build:
+```bash
+# Windows
+build.bat
+
+# Or manual steps
+mvn clean test package
+```
+
+### CI Pipeline Outputs:
+- **WAR File**: `target/demo.war` - Ready for deployment
+- **Test Reports**: JUnit and JaCoCo coverage reports
+- **Quality Reports**: SonarQube and Checkstyle analysis
+- **Security Report**: OWASP dependency check results
+- **Build Metadata**: JSON file with build information for CD pipeline
+
 ### 🌐API Endpoints
 
 | Endpoint                 | Method | Description                       |
@@ -79,6 +120,38 @@ mvn clean install
 | `/api/rides/{id}`        | GET    | Retrieve ride details by ID       |
 | `/api/rides/{id}/book`   | POST   | Book a ride                       |
 | `/api/rides/{id}/cancel` | POST   | Cancel a booked ride              |
+
+## 🧪Testing
+
+### Running Tests:
+```bash
+# Run all tests
+mvn test
+
+# Run with coverage
+mvn clean test jacoco:report
+
+# View coverage report
+open target/site/jacoco/index.html
+```
+
+### Test Structure:
+- **Unit Tests**: `src/test/java/models/` - Model validation tests
+- **Integration Tests**: Database and service layer tests
+- **Coverage Reports**: JaCoCo generates detailed coverage metrics
+- **Test Database**: H2 in-memory database for testing
+
+### Code Quality:
+```bash
+# Run Checkstyle
+mvn checkstyle:check
+
+# SonarQube analysis (requires SonarQube server)
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000
+
+# OWASP Dependency Check
+mvn org.owasp:dependency-check-maven:check
+```
 
 ## 🔍Usage
 
