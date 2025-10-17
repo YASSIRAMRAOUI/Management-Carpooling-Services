@@ -97,32 +97,39 @@ pipeline {
                 stage('SonarQube Analysis') {
                     steps {
                         echo 'Running SonarQube analysis...'
-                        withSonarQubeEnv('sonar_integration') {
-                            script {
-                                def sonarCmd = 'sonar:sonar ' +
-                                              '-Dsonar.projectKey=carpooling-service ' +
-                                              '-Dsonar.projectName="Carpooling Service" ' +
-                                              "-Dsonar.projectVersion=${BUILD_NUMBER} " +
-                                              '-Dsonar.sources=src/main/java ' +
-                                              '-Dsonar.tests=src/test/java ' +
-                                              '-Dsonar.java.binaries=target/classes ' +
-                                              '-Dsonar.junit.reportPaths=target/surefire-reports ' +
-                                              '-Dsonar.jacoco.reportPaths=target/jacoco.exec ' +
-                                              '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
-                                
-                                try {
-                                    sh "mvn ${sonarCmd}"
-                                } catch (Exception e) {
-                                    echo "Maven not found in PATH, trying wrapper..."
-                                    if (fileExists('mvnw')) {
-                                        sh 'chmod +x mvnw'  // Make wrapper executable
-                                        sh "./mvnw ${sonarCmd}"
-                                    } else if (fileExists('mvnw.cmd')) {
-                                        sh "./mvnw.cmd ${sonarCmd}"
-                                    } else {
-                                        error 'Maven not found for SonarQube analysis!'
+                        script {
+                            try {
+                                withSonarQubeEnv('sonar_integration') {
+                                    def sonarCmd = 'sonar:sonar ' +
+                                                  '-Dsonar.projectKey=carpooling-service ' +
+                                                  '-Dsonar.projectName="Carpooling Service" ' +
+                                                  "-Dsonar.projectVersion=${BUILD_NUMBER} " +
+                                                  '-Dsonar.sources=src/main/java ' +
+                                                  '-Dsonar.tests=src/test/java ' +
+                                                  '-Dsonar.java.binaries=target/classes ' +
+                                                  '-Dsonar.junit.reportPaths=target/surefire-reports ' +
+                                                  '-Dsonar.jacoco.reportPaths=target/jacoco.exec ' +
+                                                  '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                                    
+                                    try {
+                                        sh "mvn ${sonarCmd}"
+                                    } catch (Exception e) {
+                                        echo "Maven not found in PATH, trying wrapper..."
+                                        if (fileExists('mvnw')) {
+                                            sh 'chmod +x mvnw'  // Make wrapper executable
+                                            sh "./mvnw ${sonarCmd}"
+                                        } else if (fileExists('mvnw.cmd')) {
+                                            sh "./mvnw.cmd ${sonarCmd}"
+                                        } else {
+                                            error 'Maven not found for SonarQube analysis!'
+                                        }
                                     }
                                 }
+                            } catch (Exception e) {
+                                echo "SonarQube analysis failed: ${e.getMessage()}"
+                                echo "SonarQube server 'sonar_integration' may not be configured in Jenkins"
+                                echo "Skipping SonarQube analysis..."
+                                currentBuild.result = 'UNSTABLE'
                             }
                         }
                     }
@@ -136,13 +143,18 @@ pipeline {
                                 sh 'mvn checkstyle:check || true'
                             } catch (Exception e) {
                                 echo "Maven not found in PATH, trying wrapper..."
-                                if (fileExists('mvnw')) {
-                                    sh 'chmod +x mvnw'  // Make wrapper executable
-                                    sh './mvnw checkstyle:check || true'
-                                } else if (fileExists('mvnw.cmd')) {
-                                    sh './mvnw.cmd checkstyle:check || true'
-                                } else {
-                                    echo 'Maven not found for Checkstyle analysis, skipping...'
+                                try {
+                                    if (fileExists('mvnw')) {
+                                        sh 'chmod +x mvnw'  // Make wrapper executable
+                                        sh './mvnw checkstyle:check || true'
+                                    } else if (fileExists('mvnw.cmd')) {
+                                        sh './mvnw.cmd checkstyle:check || true'
+                                    } else {
+                                        echo 'Maven not found for Checkstyle analysis, skipping...'
+                                    }
+                                } catch (Exception wrapperError) {
+                                    echo "Checkstyle analysis failed: ${wrapperError.getMessage()}"
+                                    echo "Skipping Checkstyle analysis..."
                                 }
                             }
                         }
@@ -167,8 +179,17 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo 'Waiting for SonarQube Quality Gate...'
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
+                script {
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: false
+                        }
+                    } catch (Exception e) {
+                        echo "Quality Gate check failed: ${e.getMessage()}"
+                        echo "This may be due to SonarQube not being configured or analysis not completed"
+                        echo "Continuing pipeline execution..."
+                        currentBuild.result = 'UNSTABLE'
+                    }
                 }
             }
         }
