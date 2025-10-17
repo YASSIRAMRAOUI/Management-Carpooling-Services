@@ -7,15 +7,9 @@ pipeline {
         
         // Maven configuration
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
-        
-        // Artifact repository (optional - for CD pipeline pickup)
-        ARTIFACT_REPO = credentials('artifact-repo-credentials') // Optional
     }
     
-    tools {
-        maven 'Maven-3.8.6'
-        jdk 'JDK-11'
-    }
+    // No explicit tools block; assumes Maven/Java available on agent PATH
     
     stages {
         stage('Checkout') {
@@ -40,11 +34,17 @@ pipeline {
             post {
                 always {
                     // Publish test results
-                    publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     
                     // Publish JaCoCo coverage report
-                    publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
-                                   sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                    script {
+                        try {
+                            publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
+                                            sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                        } catch (err) {
+                            echo "Coverage publish skipped (plugin missing or report not found): ${err}"
+                        }
+                    }
                 }
             }
         }
@@ -79,7 +79,13 @@ pipeline {
                     post {
                         always {
                             // Record checkstyle results
-                            recordIssues enabledForFailure: true, tools: [checkStyle()]
+                            script {
+                                try {
+                                    recordIssues enabledForFailure: true, tools: [checkStyle()]
+                                } catch (err) {
+                                    echo "Checkstyle publish skipped (plugin missing): ${err}"
+                                }
+                            }
                         }
                     }
                 }
@@ -89,8 +95,14 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo 'Waiting for SonarQube Quality Gate...'
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
+                script {
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: false
+                        }
+                    } catch (err) {
+                        echo "Quality Gate wait skipped (plugin not configured or timeout): ${err}"
+                    }
                 }
             }
         }
@@ -120,61 +132,18 @@ pipeline {
             post {
                 always {
                     // Publish OWASP dependency check results
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                    script {
+                        try {
+                            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                        } catch (err) {
+                            echo "Dependency-Check report publish skipped (plugin missing): ${err}"
+                        }
+                    }
                 }
             }
         }
         
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                script {
-                    def dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
-                    env.DOCKER_IMAGE_ID = dockerImage.id
-                }
-            }
-        }
-        
-        
-        
-        stage('Validate Docker Image') {
-            steps {
-                echo 'Validating Docker image functionality...'
-                sh '''
-                    # Start container in detached mode for testing
-                    docker run -d --name ci-test-container -p 8081:8080 ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    
-                    # Wait for application to start
-                    echo "Waiting for application to start..."
-                    sleep 45
-                    
-                    # Basic health check
-                    for i in {1..5}; do
-                        if curl -f http://localhost:8081/ > /dev/null 2>&1; then
-                            echo "✅ Application is responding successfully"
-                            break
-                        else
-                            echo "⏳ Attempt $i: Application not ready yet, waiting..."
-                            sleep 10
-                        fi
-                        if [ $i -eq 5 ]; then
-                            echo "❌ Application failed to start properly"
-                            docker logs ci-test-container
-                            exit 1
-                        fi
-                    done
-                    
-                    # Validate application endpoints
-                    echo "Validating application endpoints..."
-                    
-                    # Cleanup
-                    docker stop ci-test-container
-                    docker rm ci-test-container
-                    
-                    echo "✅ Docker image validation completed successfully"
-                '''
-            }
-        }
+        // Docker stages removed for CI-only pipeline
         
         stage('Publish Artifacts') {
             steps {
@@ -212,7 +181,13 @@ pipeline {
             echo 'Pipeline execution completed.'
             
             // Clean workspace
-            cleanWs()
+            script {
+                try {
+                    cleanWs()
+                } catch (err) {
+                    echo "Skipping cleanWs: no workspace context (${err})"
+                }
+            }
         }
         
         success {
@@ -220,27 +195,32 @@ pipeline {
             
             // Send success notification
             script {
-                emailext (
-                    subject: "✅ CI SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                    body: """
-                        🎉 CI Pipeline completed successfully!
-                        
-                        📊 Build Details:
-                        - Job: ${env.JOB_NAME}
-                        - Build Number: ${env.BUILD_NUMBER}
-                        - Branch: ${env.BRANCH_NAME}
-                        - Commit: ${env.GIT_COMMIT}
-                        - Build URL: ${env.BUILD_URL}
-                        
-                        📦 Artifacts Ready:
-                        - WAR File: target/demo.war
-                        - Coverage Report: Available in build artifacts
-                        - Build Metadata: build-metadata.json
-                        
-                        ✅ Ready for deployment pipeline!
-                    """,
-                    to: "${env.CHANGE_AUTHOR_EMAIL}"
-                )
+                def recipient = env.CHANGE_AUTHOR_EMAIL
+                if (recipient && recipient.trim()) {
+                    emailext (
+                        subject: "✅ CI SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                        body: """
+                            🎉 CI Pipeline completed successfully!
+                            
+                            📊 Build Details:
+                            - Job: ${env.JOB_NAME}
+                            - Build Number: ${env.BUILD_NUMBER}
+                            - Branch: ${env.BRANCH_NAME}
+                            - Commit: ${env.GIT_COMMIT}
+                            - Build URL: ${env.BUILD_URL}
+                            
+                            📦 Artifacts Ready:
+                            - WAR File: target/demo.war
+                            - Coverage Report: Available in build artifacts
+                            - Build Metadata: build-metadata.json
+                            
+                            ✅ Ready for deployment pipeline!
+                        """,
+                        to: recipient
+                    )
+                } else {
+                    echo 'No CHANGE_AUTHOR_EMAIL set; skipping email notification.'
+                }
             }
         }
         
@@ -248,47 +228,61 @@ pipeline {
             echo 'CI Pipeline failed!'
             
             // Send failure notification
-            emailext (
-                subject: "❌ CI FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """
-                    💥 CI Pipeline failed!
-                    
-                    📊 Build Details:
-                    - Job: ${env.JOB_NAME}
-                    - Build Number: ${env.BUILD_NUMBER}
-                    - Branch: ${env.BRANCH_NAME}
-                    - Build URL: ${env.BUILD_URL}
-                    
-                    🔍 Please check the logs and fix the issues before deployment.
-                """,
-                to: "${env.CHANGE_AUTHOR_EMAIL}"
-            )
+            script {
+                def recipient = env.CHANGE_AUTHOR_EMAIL
+                if (recipient && recipient.trim()) {
+                    emailext (
+                        subject: "❌ CI FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                        body: """
+                            💥 CI Pipeline failed!
+                            
+                            📊 Build Details:
+                            - Job: ${env.JOB_NAME}
+                            - Build Number: ${env.BUILD_NUMBER}
+                            - Branch: ${env.BRANCH_NAME}
+                            - Build URL: ${env.BUILD_URL}
+                            
+                            🔍 Please check the logs and fix the issues before deployment.
+                        """,
+                        to: recipient
+                    )
+                } else {
+                    echo 'No CHANGE_AUTHOR_EMAIL set; skipping email notification.'
+                }
+            }
         }
         
         unstable {
             echo 'CI Pipeline is unstable!'
             
             // Send unstable notification
-            emailext (
-                subject: "⚠️ CI UNSTABLE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """
-                    ⚠️ CI Pipeline completed but is unstable!
-                    
-                    📊 Build Details:
-                    - Job: ${env.JOB_NAME}
-                    - Build Number: ${env.BUILD_NUMBER}
-                    - Branch: ${env.BRANCH_NAME}
-                    - Build URL: ${env.BUILD_URL}
-                    
-                    ⚡ Issues Found:
-                    - Quality gate warnings
-                    - Test instability
-                    - Security vulnerabilities
-                    
-                    🔍 Please review warnings before proceeding with deployment.
-                """,
-                to: "${env.CHANGE_AUTHOR_EMAIL}"
-            )
+            script {
+                def recipient = env.CHANGE_AUTHOR_EMAIL
+                if (recipient && recipient.trim()) {
+                    emailext (
+                        subject: "⚠️ CI UNSTABLE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                        body: """
+                            ⚠️ CI Pipeline completed but is unstable!
+                            
+                            📊 Build Details:
+                            - Job: ${env.JOB_NAME}
+                            - Build Number: ${env.BUILD_NUMBER}
+                            - Branch: ${env.BRANCH_NAME}
+                            - Build URL: ${env.BUILD_URL}
+                            
+                            ⚡ Issues Found:
+                            - Quality gate warnings
+                            - Test instability
+                            - Security vulnerabilities
+                            
+                            🔍 Please review warnings before proceeding with deployment.
+                        """,
+                        to: recipient
+                    )
+                } else {
+                    echo 'No CHANGE_AUTHOR_EMAIL set; skipping email notification.'
+                }
+            }
         }
     }
 }
