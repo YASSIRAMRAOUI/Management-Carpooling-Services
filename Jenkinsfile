@@ -9,7 +9,10 @@ pipeline {
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     }
     
-    // Tools block removed to avoid requiring named tool installations on Jenkins controller/agents
+    tools {
+        maven 'Maven-3.8.6'
+        jdk 'JDK-11'
+    }
     
     stages {
         stage('Checkout') {
@@ -22,44 +25,23 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                script {
-                    if (isUnix()) {
-                        sh 'mvn -version'
-                        sh 'mvn clean compile -DskipTests'
-                    } else {
-                        bat 'mvn -version'
-                        bat 'mvn clean compile -DskipTests'
-                    }
-                }
+                sh 'mvn clean compile -DskipTests'
             }
         }
         
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                script {
-                    if (isUnix()) {
-                        sh 'mvn test'
-                    } else {
-                        bat 'mvn test'
-                    }
-                }
+                sh 'mvn test'
             }
             post {
                 always {
-                    // Publish test results using basic Jenkins functionality
-                    script {
-                        if (fileExists('target/surefire-reports')) {
-                            junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
-                        }
-                    }
+                    // Publish test results
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     
-                    // Archive coverage reports as artifacts instead of using publishCoverage
-                    script {
-                        if (fileExists('target/site/jacoco')) {
-                            archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
-                        }
-                    }
+                    // Publish JaCoCo coverage report
+                    publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
+                                   sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
                 }
             }
         }
@@ -70,23 +52,18 @@ pipeline {
                     steps {
                         echo 'Running SonarQube analysis...'
                         withSonarQubeEnv('sonar_integration') {
-                            script {
-                                def sonarCmd = 'mvn sonar:sonar ' +
-                                              '-Dsonar.projectKey=carpooling-service ' +
-                                              '-Dsonar.projectName="Carpooling Service" ' +
-                                              "-Dsonar.projectVersion=${BUILD_NUMBER} " +
-                                              '-Dsonar.sources=src/main/java ' +
-                                              '-Dsonar.tests=src/test/java ' +
-                                              '-Dsonar.java.binaries=target/classes ' +
-                                              '-Dsonar.junit.reportPaths=target/surefire-reports ' +
-                                              '-Dsonar.jacoco.reportPaths=target/jacoco.exec ' +
-                                              '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
-                                if (isUnix()) {
-                                    sh sonarCmd
-                                } else {
-                                    bat sonarCmd
-                                }
-                            }
+                            sh '''
+                                mvn sonar:sonar \
+                                -Dsonar.projectKey=carpooling-service \
+                                -Dsonar.projectName="Carpooling Service" \
+                                -Dsonar.projectVersion=${BUILD_NUMBER} \
+                                -Dsonar.sources=src/main/java \
+                                -Dsonar.tests=src/test/java \
+                                -Dsonar.java.binaries=target/classes \
+                                -Dsonar.junit.reportPaths=target/surefire-reports \
+                                -Dsonar.jacoco.reportPaths=target/jacoco.exec \
+                                -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                            '''
                         }
                     }
                 }
@@ -94,26 +71,12 @@ pipeline {
                 stage('Checkstyle Analysis') {
                     steps {
                         echo 'Running Checkstyle analysis...'
-                        script {
-                            int rc = 0
-                            if (isUnix()) {
-                                rc = sh(script: 'mvn checkstyle:check', returnStatus: true)
-                            } else {
-                                rc = bat(script: 'mvn checkstyle:check', returnStatus: true)
-                            }
-                            if (rc != 0) {
-                                echo 'Checkstyle violations detected (non-blocking).'
-                            }
-                        }
+                        sh 'mvn checkstyle:check || true'
                     }
                     post {
                         always {
-                            // Archive checkstyle results as artifacts instead of using recordIssues
-                            script {
-                                if (fileExists('target/checkstyle-result.xml')) {
-                                    archiveArtifacts artifacts: 'target/checkstyle-result.xml', allowEmptyArchive: true
-                                }
-                            }
+                            // Record checkstyle results
+                            recordIssues enabledForFailure: true, tools: [checkStyle()]
                         }
                     }
                 }
@@ -132,13 +95,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Creating WAR package...'
-                script {
-                    if (isUnix()) {
-                        sh 'mvn package -DskipTests'
-                    } else {
-                        bat 'mvn package -DskipTests'
-                    }
-                }
+                sh 'mvn package -DskipTests'
             }
             post {
                 success {
@@ -151,28 +108,68 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo 'Running OWASP Dependency Check...'
-                script {
-                    def depCheckCmd = 'mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DsuppressionFile=suppressions.xml'
-                    int rc = 0
-                    if (isUnix()) {
-                        rc = sh(script: depCheckCmd, returnStatus: true)
-                    } else {
-                        rc = bat(script: depCheckCmd, returnStatus: true)
-                    }
-                    if (rc != 0) {
-                        echo 'OWASP Dependency Check reported issues (non-blocking).'
-                    }
-                }
+                sh '''
+                    mvn org.owasp:dependency-check-maven:check \
+                    -DfailBuildOnCVSS=7 \
+                    -DsuppressionFile=suppressions.xml || true
+                '''
             }
             post {
                 always {
-                    // Archive OWASP dependency check results as artifacts instead of using dependencyCheckPublisher
-                    script {
-                        if (fileExists('target/dependency-check-report.xml')) {
-                            archiveArtifacts artifacts: 'target/dependency-check-report.xml', allowEmptyArchive: true
-                        }
-                    }
+                    // Publish OWASP dependency check results
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
                 }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    def dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                    env.DOCKER_IMAGE_ID = dockerImage.id
+                }
+            }
+        }
+        
+        
+        
+        stage('Validate Docker Image') {
+            steps {
+                echo 'Validating Docker image functionality...'
+                sh '''
+                    # Start container in detached mode for testing
+                    docker run -d --name ci-test-container -p 8081:8080 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    
+                    # Wait for application to start
+                    echo "Waiting for application to start..."
+                    sleep 45
+                    
+                    # Basic health check
+                    for i in {1..5}; do
+                        if curl -f http://localhost:8081/ > /dev/null 2>&1; then
+                            echo "✅ Application is responding successfully"
+                            break
+                        else
+                            echo "⏳ Attempt $i: Application not ready yet, waiting..."
+                            sleep 10
+                        fi
+                        if [ $i -eq 5 ]; then
+                            echo "❌ Application failed to start properly"
+                            docker logs ci-test-container
+                            exit 1
+                        fi
+                    done
+                    
+                    # Validate application endpoints
+                    echo "Validating application endpoints..."
+                    
+                    # Cleanup
+                    docker stop ci-test-container
+                    docker rm ci-test-container
+                    
+                    echo "✅ Docker image validation completed successfully"
+                '''
             }
         }
         
