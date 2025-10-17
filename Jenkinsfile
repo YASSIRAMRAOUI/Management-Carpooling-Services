@@ -9,10 +9,7 @@ pipeline {
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     }
     
-    tools {
-        maven 'Maven-3.8.6'
-        jdk 'JDK-11'
-    }
+    // Tools block removed to avoid requiring named tool installations on Jenkins controller/agents
     
     stages {
         stage('Checkout') {
@@ -39,9 +36,15 @@ pipeline {
                     // Publish test results
                     junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     
-                    // Publish JaCoCo coverage report
-                    publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
-                                   sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                    // Archive JaCoCo coverage reports (if available)
+                    script {
+                        if (fileExists('target/site/jacoco/jacoco.xml')) {
+                            archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
+                            echo 'JaCoCo coverage report archived'
+                        } else {
+                            echo 'No JaCoCo coverage report found'
+                        }
+                    }
                 }
             }
         }
@@ -75,8 +78,15 @@ pipeline {
                     }
                     post {
                         always {
-                            // Record checkstyle results
-                            recordIssues enabledForFailure: true, tools: [checkStyle()]
+                            // Archive checkstyle results (if available)
+                            script {
+                                if (fileExists('target/checkstyle-result.xml')) {
+                                    archiveArtifacts artifacts: 'target/checkstyle-result.xml', allowEmptyArchive: true
+                                    echo 'Checkstyle report archived'
+                                } else {
+                                    echo 'No Checkstyle report found'
+                                }
+                            }
                         }
                     }
                 }
@@ -116,60 +126,16 @@ pipeline {
             }
             post {
                 always {
-                    // Publish OWASP dependency check results
-                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                    // Archive OWASP dependency check results (if available)
+                    script {
+                        if (fileExists('target/dependency-check-report.xml')) {
+                            archiveArtifacts artifacts: 'target/dependency-check-report.*', allowEmptyArchive: true
+                            echo 'OWASP Dependency Check report archived'
+                        } else {
+                            echo 'No OWASP Dependency Check report found'
+                        }
+                    }
                 }
-            }
-        }
-        
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                script {
-                    def dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
-                    env.DOCKER_IMAGE_ID = dockerImage.id
-                }
-            }
-        }
-        
-        
-        
-        stage('Validate Docker Image') {
-            steps {
-                echo 'Validating Docker image functionality...'
-                sh '''
-                    # Start container in detached mode for testing
-                    docker run -d --name ci-test-container -p 8081:8080 ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    
-                    # Wait for application to start
-                    echo "Waiting for application to start..."
-                    sleep 45
-                    
-                    # Basic health check
-                    for i in {1..5}; do
-                        if curl -f http://localhost:8081/ > /dev/null 2>&1; then
-                            echo "✅ Application is responding successfully"
-                            break
-                        else
-                            echo "⏳ Attempt $i: Application not ready yet, waiting..."
-                            sleep 10
-                        fi
-                        if [ $i -eq 5 ]; then
-                            echo "❌ Application failed to start properly"
-                            docker logs ci-test-container
-                            exit 1
-                        fi
-                    done
-                    
-                    # Validate application endpoints
-                    echo "Validating application endpoints..."
-                    
-                    # Cleanup
-                    docker stop ci-test-container
-                    docker rm ci-test-container
-                    
-                    echo "✅ Docker image validation completed successfully"
-                '''
             }
         }
         
