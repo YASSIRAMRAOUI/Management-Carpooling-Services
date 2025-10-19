@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_ENV = 'sonar_token'
+        SONARQUBE_ENV = 'sonar_integration'
         SONAR_PROJECT_KEY = 'tp_devops'
         SONAR_PROJECT_NAME = 'tp_devops'
         MAVEN_HOME = tool 'Default Maven'
@@ -46,7 +46,7 @@ pipeline {
         stage('5️⃣ SonarQube Analysis') {
             steps {
                 echo "🔍 Running SonarQube analysis..."
-                withSonarQubeEnv('sonar_token') {
+                withSonarQubeEnv('sonar_integration') {
                     sh """
                         ${MAVEN_HOME}/bin/mvn sonar:sonar \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
