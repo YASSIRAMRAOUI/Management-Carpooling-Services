@@ -10,28 +10,28 @@ pipeline {
 
     stages {
 
-        stage('1️⃣ Clone Repository') {
+        stage('Clone Repository') {
             steps {
                 echo "📥 Cloning repository..."
                 checkout scm
             }
         }
 
-        stage('2️⃣ Compile Project') {
+        stage('Compile Project') {
             steps {
                 echo "🏗️ Compiling the code..."
                 sh "${MAVEN_HOME}/bin/mvn clean compile"
             }
         }
 
-        stage('3️⃣ Run Unit Tests') {
+        stage('Run Unit Tests') {
             steps {
                 echo "🧪 Running tests..."
                 sh "${MAVEN_HOME}/bin/mvn test"
             }
         }
 
-        stage('4️⃣ Package Application') {
+        stage('Package Application') {
             steps {
                 echo "📦 Packaging the application..."
                 sh "${MAVEN_HOME}/bin/mvn package -DskipTests"
@@ -43,7 +43,7 @@ pipeline {
             }
         }
 
-        stage('5️⃣ SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 echo "🔍 Running SonarQube analysis..."
                 withSonarQubeEnv('sonar_integration') {
