@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_ENV = 'sonar_integration'   // Jenkins credential ID
+        SONARQUBE_ENV = 'sonar_integration'
         SONAR_PROJECT_KEY = 'tp_devops'
         SONAR_PROJECT_NAME = 'tp_devops'
         MAVEN_HOME = tool 'Default Maven'
@@ -62,7 +62,9 @@ pipeline {
     post {
         always {
             echo "🧹 Cleaning workspace..."
-            cleanWs()
+            script {
+                cleanWs()
+            }
         }
         success {
             echo "✅ Pipeline finished successfully!"
