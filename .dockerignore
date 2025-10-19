@@ -1,0 +1,10 @@
+# Ignore build output and VCS metadata
+.git
+.gitignore
+.target
+target
+**/node_modules
+**/.DS_Store
+**/*.log
+**/.idea
+**/.vscode

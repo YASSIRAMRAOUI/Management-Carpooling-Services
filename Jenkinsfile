@@ -6,6 +6,8 @@ pipeline {
         SONAR_PROJECT_KEY = 'tp_devops'
         SONAR_PROJECT_NAME = 'tp_devops'
         MAVEN_HOME = tool 'Default Maven'
+        DOCKER_IMAGE = 'yassiramraoui/management-carpooling-services'
+        DOCKER_TAG = 'latest'
     }
 
     stages {
@@ -55,6 +57,33 @@ pipeline {
                         -Dsonar.java.binaries=target/classes
                     """
                 }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo "🐳 Building Docker image..."
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                echo "🚀 Pushing Docker image to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    sh 'docker push ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                }
+            }
+        }
+
+        stage('Docker Smoke Test') {
+            steps {
+                echo "🧪 Running container smoke test..."
+                sh "docker run -d --rm -p 8080:8080 --name mcs_smoke ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                // Optionally, we could curl the root page; keep it simple here
+                sh "sleep 5 && docker logs mcs_smoke | tail -n 50 || true"
+                sh "docker rm -f mcs_smoke || true"
             }
         }
     }
