@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         SONARQUBE_ENV = 'sonar_integration'
-        SONAR_PROJECT_KEY = 'tp_devops'
-        SONAR_PROJECT_NAME = 'tp_devops'
-        MAVEN_HOME = tool 'Default Maven'
+        SONAR_PROJECT_KEY = 'Management-Carpooling-Services'
+        SONAR_PROJECT_NAME = 'Management-Carpooling-Services'
+        MAVEN_HOME = tool 'Maven'
         DOCKER_IMAGE = 'yassiramraoui/management-carpooling-services'
         DOCKER_TAG = 'latest'
     }
