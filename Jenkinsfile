@@ -80,7 +80,7 @@ pipeline {
         stage('Docker Smoke Test') {
             steps {
                 echo "🧪 Running container smoke test..."
-                sh "docker run -d --rm -p 8080:8080 --name mcs_smoke ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                sh "docker run -d --rm -p 7070:7070 --name mcs_smoke ${DOCKER_IMAGE}:${DOCKER_TAG}"
                 // Optionally, we could curl the root page; keep it simple here
                 sh "sleep 5 && docker logs mcs_smoke | tail -n 50 || true"
                 sh "docker rm -f mcs_smoke || true"
