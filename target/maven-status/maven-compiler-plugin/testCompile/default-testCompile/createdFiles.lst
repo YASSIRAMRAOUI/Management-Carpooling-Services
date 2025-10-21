@@ -1,0 +1,7 @@
+controller\ServletValidationTest.class
+models\UserTest.class
+database\UserDAOTest.class
+models\RideTest.class
+testsuite\AllTestsSuite.class
+database\UserDAOIntegrationTest.class
+database\DatabaseConnectionH2Test.class
