@@ -20,7 +20,13 @@ public class CreateRideServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
+        
+        if (session == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+        
         Integer driverId = (Integer) session.getAttribute("user_id");
 
         if (driverId == null) {
@@ -31,12 +37,31 @@ public class CreateRideServlet extends HttpServlet {
         String dateStr = request.getParameter("date");
         String depart = request.getParameter("depart");
         String destination = request.getParameter("destination");
-        Double fare = Double.parseDouble(request.getParameter("fare"));
-        int numberOfPlaces = Integer.parseInt(request.getParameter("numberOfPlaces"));
-        String status = "In Progress";
-
+        String fareStr = request.getParameter("fare");
+        String numberOfPlacesStr = request.getParameter("numberOfPlaces");
+        
+        // Validate inputs
+        if (dateStr == null || depart == null || destination == null || 
+            fareStr == null || numberOfPlacesStr == null ||
+            dateStr.isEmpty() || depart.trim().isEmpty() || destination.trim().isEmpty()) {
+            request.setAttribute("errorMessage", "All fields are required.");
+            request.getRequestDispatcher("createRide.jsp").forward(request, response);
+            return;
+        }
+        
         try {
+            double fare = Double.parseDouble(fareStr);
+            int numberOfPlaces = Integer.parseInt(numberOfPlacesStr);
+            
+            if (fare <= 0 || numberOfPlaces <= 0) {
+                request.setAttribute("errorMessage", "Fare and number of places must be positive values.");
+                request.getRequestDispatcher("createRide.jsp").forward(request, response);
+                return;
+            }
+            
+            String status = "In Progress";
             Date date = Date.valueOf(dateStr);
+            
             Ride ride = new Ride();
             ride.setDriverId(driverId);
             ride.setDate(date);
@@ -50,8 +75,15 @@ public class CreateRideServlet extends HttpServlet {
 
             session.setAttribute("rideAdded", "Ride created successfully!");
             response.sendRedirect("DriverHomeServlet");
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid number format for fare or number of places.");
+            request.getRequestDispatcher("createRide.jsp").forward(request, response);
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("errorMessage", "Invalid date format.");
+            request.getRequestDispatcher("createRide.jsp").forward(request, response);
         } catch (SQLException e) {
-            throw new ServletException("Error creating ride", e);
+            request.setAttribute("errorMessage", "An error occurred while creating the ride. Please try again.");
+            request.getRequestDispatcher("createRide.jsp").forward(request, response);
         }
     }
 }

@@ -23,11 +23,22 @@ public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String name = request.getParameter("name").trim();
-        String email = request.getParameter("email").trim();
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
-        String phoneNumber = request.getParameter("phone_number").trim();
+        String phoneNumber = request.getParameter("phone_number");
         String role = request.getParameter("role");
+        
+        // Validate inputs
+        if (name == null || email == null || password == null || phoneNumber == null || role == null) {
+            request.setAttribute("errorMessage", "All fields are required.");
+            request.getRequestDispatcher("register.jsp").forward(request, response);
+            return;
+        }
+        
+        name = name.trim();
+        email = email.trim();
+        phoneNumber = phoneNumber.trim();
 
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             request.setAttribute("errorMessage", "Invalid email format. Please enter a valid email.");
@@ -37,7 +48,6 @@ public class RegisterServlet extends HttpServlet {
 
         try {
             if (userDAO.isEmailRegistered(email)) {
-                System.out.println("Email already registered: " + email);
                 request.setAttribute("errorMessage", "This email is already in use. Please try another email.");
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
@@ -54,8 +64,8 @@ public class RegisterServlet extends HttpServlet {
                 request.getRequestDispatcher("register.jsp").forward(request, response);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            request.setAttribute("errorMessage", "Database error: " + e.getMessage());
+            // Avoid exposing internal error details to users
+            request.setAttribute("errorMessage", "An error occurred during registration. Please try again.");
             request.getRequestDispatcher("register.jsp").forward(request, response);
         }
     }

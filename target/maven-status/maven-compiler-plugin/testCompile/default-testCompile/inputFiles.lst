@@ -1,7 +1,7 @@
+Y:\Projects\Management-Carpooling-Services\src\test\java\controller\RegisterServletTest.java
 Y:\Projects\Management-Carpooling-Services\src\test\java\models\RideTest.java
 Y:\Projects\Management-Carpooling-Services\src\test\java\database\UserDAOTest.java
+Y:\Projects\Management-Carpooling-Services\src\test\java\database\DatabaseConnectionTest.java
+Y:\Projects\Management-Carpooling-Services\src\test\java\controller\LoginServletTest.java
 Y:\Projects\Management-Carpooling-Services\src\test\java\models\UserTest.java
-Y:\Projects\Management-Carpooling-Services\src\test\java\database\UserDAOIntegrationTest.java
-Y:\Projects\Management-Carpooling-Services\src\test\java\testsuite\AllTestsSuite.java
-Y:\Projects\Management-Carpooling-Services\src\test\java\controller\ServletValidationTest.java
-Y:\Projects\Management-Carpooling-Services\src\test\java\database\DatabaseConnectionH2Test.java
+Y:\Projects\Management-Carpooling-Services\src\test\java\database\RideDAOTest.java

@@ -31,6 +31,38 @@ pipeline {
                 echo "🧪 Running tests..."
                 sh "${MAVEN_HOME}/bin/mvn test"
             }
+            post {
+                always {
+                    echo "📊 Publishing test results..."
+                    junit '**/target/surefire-reports/*.xml'
+                    jacoco execPattern: '**/target/jacoco.exec'
+                }
+                success {
+                    echo "✅ All tests passed!"
+                }
+                failure {
+                    echo "❌ Tests failed! Check the test reports."
+                }
+            }
+        }
+
+        stage('Code Coverage Report') {
+            steps {
+                echo "📈 Generating code coverage report..."
+                sh "${MAVEN_HOME}/bin/mvn jacoco:report"
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report'
+                    ])
+                }
+            }
         }
 
         stage('Package Application') {
@@ -53,9 +85,22 @@ pipeline {
                         ${MAVEN_HOME}/bin/mvn sonar:sonar \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                        -Dsonar.sources=src \
-                        -Dsonar.java.binaries=target/classes
+                        -Dsonar.sources=src/main/java \
+                        -Dsonar.tests=src/test/java \
+                        -Dsonar.java.binaries=target/classes \
+                        -Dsonar.java.test.binaries=target/test-classes \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                        -Dsonar.junit.reportPaths=target/surefire-reports
                     """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo "🚦 Waiting for SonarQube Quality Gate..."
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }

@@ -1,7 +1,8 @@
-controller\ServletValidationTest.class
 models\UserTest.class
+controller\RegisterServletTest.class
+database\RideDAOTest.class
 database\UserDAOTest.class
 models\RideTest.class
-testsuite\AllTestsSuite.class
-database\UserDAOIntegrationTest.class
-database\DatabaseConnectionH2Test.class
+controller\LoginServletTest$1.class
+controller\LoginServletTest.class
+database\DatabaseConnectionTest.class

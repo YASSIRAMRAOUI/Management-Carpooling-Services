@@ -109,7 +109,7 @@ public class Ride {
         this.numberOfPlaces = numberOfPlaces;
     }
 
-    public String getpassengerPhone() {
+    public String getPassengerPhone() {
         return passengerPhone;
     }
 

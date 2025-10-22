@@ -20,9 +20,18 @@ public class LoginServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String email = request.getParameter("email").trim();
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
         String remember = request.getParameter("remember");
+        
+        // Validate inputs
+        if (email == null || password == null || email.trim().isEmpty()) {
+            request.setAttribute("errorMessage", "Email and password are required.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+        
+        email = email.trim();
 
         try {
             User user = userDAO.getUserByEmail(email);
@@ -53,8 +62,9 @@ public class LoginServlet extends HttpServlet {
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            request.setAttribute("errorMessage", "Database error: " + e.getMessage());
+            // Log the error properly instead of using printStackTrace
+            // e.printStackTrace() is a code smell in production code
+            request.setAttribute("errorMessage", "An error occurred during login. Please try again.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }

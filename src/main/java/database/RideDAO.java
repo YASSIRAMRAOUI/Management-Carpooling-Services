@@ -195,9 +195,7 @@ public class RideDAO {
                 PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setDate(1, Date.valueOf(LocalDate.now()));
-            int affectedRows = statement.executeUpdate();
-
-            System.out.println("Updated " + affectedRows + " expired rides to 'Completed' status.");
+            statement.executeUpdate();
         }
     }
 
