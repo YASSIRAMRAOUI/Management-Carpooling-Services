@@ -45,27 +45,6 @@ pipeline {
             }
         }
 
-        stage('Code Coverage Report') {
-            steps {
-                echo "📈 Generating code coverage report..."
-                sh "${MAVEN_HOME}/bin/mvn jacoco:report"
-            }
-            post {
-                success {
-                    echo "📊 Archiving JaCoCo coverage report..."
-                    archiveArtifacts artifacts: 'target/site/jacoco/**/*', allowEmptyArchive: true
-                    
-                    echo "📊 Recording JaCoCo coverage metrics..."
-                    step([$class: 'JacocoPublisher',
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-                        exclusionPattern: '**/test/**'
-                    ])
-                }
-            }
-        }
-
         stage('Package Application') {
             steps {
                 echo "📦 Packaging the application..."
