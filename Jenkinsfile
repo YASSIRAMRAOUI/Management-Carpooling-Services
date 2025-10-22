@@ -34,8 +34,7 @@ pipeline {
             post {
                 always {
                     echo "📊 Publishing test results..."
-                    junit '**/target/surefire-reports/*.xml'
-                    jacoco execPattern: '**/target/jacoco.exec'
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                 }
                 success {
                     echo "✅ All tests passed!"
@@ -52,14 +51,24 @@ pipeline {
                 sh "${MAVEN_HOME}/bin/mvn jacoco:report"
             }
             post {
-                always {
+                success {
+                    echo "📊 Publishing JaCoCo coverage report..."
                     publishHTML([
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'target/site/jacoco',
                         reportFiles: 'index.html',
-                        reportName: 'JaCoCo Coverage Report'
+                        reportName: 'JaCoCo Coverage Report',
+                        reportTitles: 'Code Coverage Report'
+                    ])
+                    
+                    // Record JaCoCo coverage
+                    step([$class: 'JacocoPublisher',
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+                        exclusionPattern: '**/test/**'
                     ])
                 }
             }
