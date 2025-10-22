@@ -17,5 +17,5 @@ FROM tomcat:9.0-jdk11-temurin
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=build /app/target/demo.war /usr/local/tomcat/webapps/ROOT.war
 
-EXPOSE 9090
+EXPOSE 7070
 CMD ["catalina.sh", "run"]
