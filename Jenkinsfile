@@ -52,18 +52,10 @@ pipeline {
             }
             post {
                 success {
-                    echo "📊 Publishing JaCoCo coverage report..."
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo Coverage Report',
-                        reportTitles: 'Code Coverage Report'
-                    ])
+                    echo "📊 Archiving JaCoCo coverage report..."
+                    archiveArtifacts artifacts: 'target/site/jacoco/**/*', allowEmptyArchive: true
                     
-                    // Record JaCoCo coverage
+                    echo "📊 Recording JaCoCo coverage metrics..."
                     step([$class: 'JacocoPublisher',
                         execPattern: '**/target/jacoco.exec',
                         classPattern: '**/target/classes',
